@@ -26,7 +26,7 @@ class BoxPacket:
             raise ValueError("BOXPacket: msg type is not bytes")
 
     def __repr__(self):
-        self.logger.info("<head>{head}, <ZigbeeID>{zigbee_id}, <TotalBytes>{total_bytes}, <DeviceID>{device_id}, <CRC>{crc}, <end>{end}".format(head=self.head, zigbee_id=self.zigbee_id, total_bytes=self.total_bytes, device_id=self.device_id, crc=self.crc, end=self.end))
+        return "<head>{head}, <ZigbeeID>{zigbee_id}, <TotalBytes>{total_bytes}, <DeviceID>{device_id}, <CRC>{crc}, <end>{end}".format(head=self.head, zigbee_id=self.zigbee_id, total_bytes=self.total_bytes, device_id=self.device_id, crc=self.crc, end=self.end)
         
     @property
     def end(self):
@@ -53,7 +53,7 @@ class BoxPacket:
     
     @property
     def device_id(self):
-        id = int.from_bytes(self.msg[5:9])
+        id = int.from_bytes(self.msg[5:9], byteorder='little')
         return id
 
     @property
