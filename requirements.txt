@@ -1,0 +1,3 @@
+uvloop
+serial_asyncio
+pyserial

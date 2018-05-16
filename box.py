@@ -18,10 +18,6 @@ logging.getLogger('').addHandler(console)
 # Set up default timeout 
 SERIAL_RECV_TIMEOUT = 1.5 # seconds
 
-# Set up the global variable
-BUFFER_SIZE = 100 * 100
-global_buffer = bytearray(BUFFER_SIZE)
-
 class BOXPacket:
     def __init__(self, msg):
         self.msg = msg
@@ -53,13 +49,19 @@ class BOXPacket:
 
 
 class BoxPacketReceiver(asyncio.Protocol):
+    buffer = bytearray()
     def connection_made(self, transport):
         self.logger = logging.getLogger('box.BoxPacketReceiver')
         self.logger.info("Connection made")
         self.transport = transport
     def data_received(self, data):
-        global global_buffer
-        global_buffer.append(data)
+        self.buffer += data
+        if b'\x55' in data:
+            if self.buffer[0] in b'\xaa' and self.buffer[1] in b'\xd1':
+                print(self.buffer)
+            else:
+                logging.info("frame error")
+            self.buffer.clear()
     def connection_lost(self, exc):
         self.logger.info("Connection lost")
         asyncio.get_event_loop.stop()
