@@ -26,15 +26,8 @@ class BoxPacket:
             raise ValueError("BOXPacket: msg type is not bytes")
 
     def __repr__(self):
-        return "<head>{head}, <ZigbeeID>{zigbee_id}, <TotalBytes>{total_bytes}, <DeviceID>{device_id}, <CRC>{crc}, <end>{end}".format(head=self.head, zigbee_id=self.zigbee_id, total_bytes=self.total_bytes, device_id=self.device_id, crc=self.crc, end=self.end)
+        return "<ZigbeeID>{zigbee_id}, <TotalBytes>{total_bytes}, <DeviceID>{device_id}, <CRC>{crc}, <payload>{payload}".format(zigbee_id=self.zigbee_id, total_bytes=self.total_bytes, device_id=self.device_id, crc=self.crc, payload=self.payload)
         
-    @property
-    def end(self):
-        """
-        The end character of the end of message
-        """
-        return self.msg[-2]
-
     @property
     def head(self):
         """
@@ -58,15 +51,23 @@ class BoxPacket:
 
     @property
     def counter(self):
-        """
-        The counter of this message, range will be from 
-        0x00000001 to 0xFFFFFFFF
-        """
         return int.from_bytes(self.msg[9:13], byteorder='little')
 
     @property
     def crc(self):
         return int.from_bytes(self.msg[-4:-2], byteorder='little')
+
+    @property
+    def payload(self):
+        data = self.msg[13:-4]
+        return data
+
+    @property
+    def end(self):
+        """
+        The end character of the end of message
+        """
+        return self.msg[-2]
 
 
 class BoxPacketReceiver(asyncio.Protocol):
@@ -79,9 +80,9 @@ class BoxPacketReceiver(asyncio.Protocol):
         self.buffer += data
         if b'\x55' in data:
             if self.buffer[0] in b'\xaa' and self.buffer[1] in b'\xd1':
-                print(self.buffer)
+                self.logger.info(self.buffer)
                 box_packet = BoxPacket(self.buffer)
-                print(box_packet)
+                self.logger.info(box_packet)
             else:
                 self.logger.info("frame error")
             self.buffer.clear()
