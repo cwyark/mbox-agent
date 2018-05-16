@@ -24,28 +24,51 @@ class BOXPacket:
         self.logger = logging.getLogger('box.BoxPacket')
         if type(msg) != bytes:
             raise ValueError("BOXPacket: msg type is not bytes")
+
+    def __repr__(self):
+        self.logger.info("<head>{head}, <ZigbeeID>{zigbee_id}, <TotalBytes>{total_bytes}, 
+                <DeviceID>{device_id}, <CRC>{crc}, <end>{end}".format(head=self.head, zigbee_id=self.zigbee_id, total_bytes=self.total_bytes, device_id=self.device_id, crc=self.crc, end=self.end))
         
     @property
     def end(self):
         """
         The end character of the end of message
         """
-        return self.msg[-1]
+        return self.msg[-2]
 
     @property
     def head(self):
         """
-        The head character of the start message
+        The head characters of the start message
         """
-        return self.msg[0]
+        return self.msg[0:2]
     
     @property
-    def count(self):
+    def zigbee_id(self):
+        id = self.msg[2:4]
+        return int.from_bytes(id, byteorder='little')
+    
+    @property
+    def total_bytes(self):
+        total = int.from_bytes(self.msg[4], byteorder='little')
+        return total
+    
+    @property
+    def device_id(self):
+        id = int.from_bytes(self.msg[5:9])
+        return id
+
+    @property
+    def counter(self):
         """
         The counter of this message, range will be from 
         0x00000001 to 0xFFFFFFFF
         """
-        return int(self.msg[1:5])
+        return int.from_bytes(self.msg[9:13], byteorder='little')
+
+    @property
+    def crc(self):
+        return int.from_bytes(self.msg[-4:-2], byteorder='little')
 
 
 class BoxPacketReceiver(asyncio.Protocol):
@@ -59,8 +82,10 @@ class BoxPacketReceiver(asyncio.Protocol):
         if b'\x55' in data:
             if self.buffer[0] in b'\xaa' and self.buffer[1] in b'\xd1':
                 print(self.buffer)
+                box_packet = BoxPacket(self.buffer)
+                print(box_packet)
             else:
-                logging.info("frame error")
+                self.logger.info("frame error")
             self.buffer.clear()
     def connection_lost(self, exc):
         self.logger.info("Connection lost")
