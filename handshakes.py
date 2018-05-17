@@ -1,3 +1,4 @@
+import logging
 import asyncio 
 import netifaces as ni
 
@@ -13,7 +14,7 @@ formatter = logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
 console.setFormatter(formatter)
 logging.getLogger('').addHandler(console)
 
-async internet_connection_checker(nic_name):
+async def internet_connection_checker(nic_name):
     logger = logging.getLogger('handshakes.internet_connection_checker')
     UP = 1
     DOWN = 0
@@ -36,7 +37,8 @@ async internet_connection_checker(nic_name):
         _current_conn = check_nic_ip(nic_name)
         if _current_conn != _prev_conn:
             await asyncio.sleep(10)
-            logger.info("Found connection changed !")
+            logger.info("Found NIC {} connection changed !".format(nic_name))
         # Do not poll the network so fast! poll it every 10 ms
         await asyncio.sleep(1)
         _prev_conn = _current_conn
+        logger.info("NIC {} status = {}".format(nic_name, _current_conn))

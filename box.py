@@ -35,8 +35,9 @@ class BoxPacket:
     
     @property
     def zigbee_id(self):
-        id = self.msg[2:4]
-        return int.from_bytes(id, byteorder='little')
+        #id = self.msg[2:4]
+        #return int.from_bytes(id, byteorder='little')
+        return self.msg[2:4].hex()
     
     @property
     def total_bytes(self):
@@ -44,8 +45,8 @@ class BoxPacket:
     
     @property
     def device_id(self):
-        id = int.from_bytes(self.msg[5:9], byteorder='little')
-        return id
+        #id = int.from_bytes(self.msg[5:9], byteorder='little')
+        return self.msg[5:9].hex()
 
     @property
     def counter(self):
@@ -77,6 +78,7 @@ class BoxPacketReceiver(asyncio.Protocol):
             if self.buffer[0] in b'\xaa' and self.buffer[1] in b'\xd1':
                 self.logger.info(self.buffer)
                 box_packet = BoxPacket(self.buffer)
+                self.logger.info(box_packet)
             else:
                 self.logger.info("frame error")
             self.buffer.clear()
