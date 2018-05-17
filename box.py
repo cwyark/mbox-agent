@@ -19,9 +19,6 @@ logging.getLogger('').addHandler(console)
 # Set up default timeout 
 SERIAL_RECV_TIMEOUT = 1.5 # seconds
 
-# Create a global queue
-packet_queue = Queue()
-
 class BoxPacket:
     def __init__(self, msg):
         self.msg = msg
@@ -80,18 +77,9 @@ class BoxPacketReceiver(asyncio.Protocol):
             if self.buffer[0] in b'\xaa' and self.buffer[1] in b'\xd1':
                 self.logger.info(self.buffer)
                 box_packet = BoxPacket(self.buffer)
-                global packet_queue
-                await packet_queue.put(box_packet)
             else:
                 self.logger.info("frame error")
             self.buffer.clear()
     def connection_lost(self, exc):
         self.logger.info("Connection lost")
         asyncio.get_event_loop.stop()
-
-async def box_packet_consumer():
-    logger = logging.getLogger('box.box_packet_consumer')
-    while True:
-        global packet_queue
-        box_packet = await packet_queue.get()
-        logger.info(box_packet)
