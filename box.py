@@ -72,8 +72,6 @@ class BoxPacketReceiver(asyncio.Protocol):
         self.logger = logging.getLogger('box.BoxPacketReceiver')
         self.logger.info("Connection made")
         self.transport = transport
-        self.queue = deque()
-        asyncio.Task(self.cusumer())
     def data_received(self, data):
         self.buffer += data
         if b'\x55' in data:
@@ -81,16 +79,9 @@ class BoxPacketReceiver(asyncio.Protocol):
                 self.logger.debug(self.buffer)
                 box_packet = BoxPacket(self.buffer)
                 self.logger.info(box_packet)
-                self.queue.append(box_packet)
             else:
                 self.logger.info("frame error")
             self.buffer.clear()
     def connection_lost(self, exc):
         self.logger.info("Connection lost")
         asyncio.get_event_loop.stop()
-
-    def cusumer(self):
-        while True:
-            data = self.queue.pop()
-            self.logger.info(data)
-            await asyncio.sleep(1)
