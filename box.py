@@ -1,7 +1,7 @@
 import logging
 import asyncio
 import serial_asyncio
-from collections import deque
+from asyncio import Queue
 
 # Set up the logging subsystem
 logging.basicConfig(level=logging.DEBUG, 
@@ -27,17 +27,28 @@ class BoxPacket:
             raise ValueError("BOXPacket: msg type is not bytes")
 
     def __repr__(self):
-        return "<ZigbeeID>{zigbee_id}, <TotalBytes>{total_bytes}, <DeviceID>{device_id}, <CRC>{crc}, <payload>{payload}".format(zigbee_id=self.zigbee_id, total_bytes=self.total_bytes, device_id=self.device_id, crc=self.crc, payload=self.payload)
-        
+        return "<ZigbeeID>{zigbee_id}, <TotalBytes>{total_bytes}, <DeviceID>{device_id}, <counter>{counter}, <payload>{payload}, <crc>{crc}".format(zigbee_id=self.zigbee_id, total_bytes=self.total_bytes, device_id=self.device_id, counter=self.counter, payload=self.payload, crc=self.crc)
+    
+    @classmethod
+    def builder(cls, zigbee_id, device_id, counter, payload=b'\x00\x00'):
+        buffer = bytearray(12)
+        buffer[0:2] = b'\xaa\xd1'
+        buffer[2:4] = zigbee_id
+        buffer[4:4] = ((1+4+4+len(payload)+2)&0xFF).to_bytes(1, byteorder='little')
+        buffer[5:9] = device_id
+        buffer[9:13] = counter.to_bytes(4, byteorder='little')
+        buffer[13:13] = payload
+        buffer += (1024).to_bytes(2, byteorder='little')
+        buffer += b'\x0d\x55'
+        return cls(buffer)
+
     @property
     def head(self):
         return self.msg[0:2]
     
     @property
     def zigbee_id(self):
-        #id = self.msg[2:4]
-        #return int.from_bytes(id, byteorder='little')
-        return self.msg[2:4].hex()
+        return self.msg[2:4]
     
     @property
     def total_bytes(self):
@@ -45,8 +56,7 @@ class BoxPacket:
     
     @property
     def device_id(self):
-        #id = int.from_bytes(self.msg[5:9], byteorder='little')
-        return self.msg[5:9].hex()
+        return self.msg[5:9]
 
     @property
     def counter(self):
@@ -64,6 +74,11 @@ class BoxPacket:
     @property
     def end(self):
         return self.msg[-2]
+    
+    @property
+    def command_code(self):
+        payload = self.payload
+        return int.from_bytes(payload[0:2], byteorder='little')
 
 
 class BoxPacketReceiver(asyncio.Protocol):
@@ -72,7 +87,8 @@ class BoxPacketReceiver(asyncio.Protocol):
         self.logger = logging.getLogger('box.BoxPacketReceiver')
         self.logger.info("Connection made")
         self.transport = transport
-        asyncio.Task(dispatch_packet_worker())
+        self.queue = Queue()
+        asyncio.ensure_future(self.dispatch_packet_worker())
     def data_received(self, data):
         self.buffer += data
         if b'\x55' in data:
@@ -80,6 +96,8 @@ class BoxPacketReceiver(asyncio.Protocol):
                 self.logger.debug(self.buffer)
                 box_packet = BoxPacket(self.buffer)
                 self.logger.info(box_packet)
+                self.queue.put_nowait(box_packet)
+                self.response(box_packet)
             else:
                 self.logger.info("frame error")
             self.buffer.clear()
@@ -87,9 +105,14 @@ class BoxPacketReceiver(asyncio.Protocol):
         self.logger.info("Connection lost")
         asyncio.get_event_loop.stop()
 
-async def dispatch_packet_worker():
-    logger = logging.getLogger('box.dispatch_packet_worker')
-    while True:
-        await asyncio.sleep(1)
-        logger.info('Consuming packet')
+    def response(self, packet):
+        logger = logging.getLogger('box.response')
+        code = packet.command_code
+        if code == 1002:
+            response_paket = BoxPacket.builder(zigbee_id = packet.zigbee_id, device_id = packet.device_id, counter = packet.counter, payload=b'\xaa\xbb\xcc\xdd')
+            logger.debug(response_paket)
+            logger.debug(response_paket.msg)
 
+    async def dispatch_packet_worker(self):
+        while True:
+            data = await self.queue.get()

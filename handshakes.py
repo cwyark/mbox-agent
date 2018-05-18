@@ -41,4 +41,4 @@ async def internet_connection_checker(nic_name):
         # Do not poll the network so fast! poll it every 10 ms
         await asyncio.sleep(1)
         _prev_conn = _current_conn
-        logger.info("NIC {} status = {}".format(nic_name, _current_conn))
+        logger.debug("NIC {} status = {}".format(nic_name, _current_conn))
