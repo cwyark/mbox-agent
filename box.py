@@ -110,17 +110,20 @@ class BoxPacketReceiver(asyncio.Protocol):
         while True:
             frame = await self.queue.get()
             box_packet = BoxPacket(frame)
-            self.logger.info(box_packet)
-            if box_packet.command_code == 1002:
-                await self.response_connection_status(box_packet)
-            if box_packet.command_code >= 3100 and box_packet.command_code <= 3105:
-                await self.response_button_data(box_packet)
-            if box_packet.command_code == 3106:
-                await self.response_button_data(box_packet)
-            if box_packet.command_code == 3201:
-                await self.response_sensor_data(box_packet)
-            if box_packet.command_code >= 3301 and box_packet.command_code <= 3306:
-                await self.response_rfid_data(box_packet)
+            if box_packet.crc_validate() is True:
+                self.logger.info(box_packet)
+                if box_packet.command_code == 1002:
+                    await self.response_connection_status(box_packet)
+                if box_packet.command_code >= 3100 and box_packet.command_code <= 3105:
+                    await self.response_button_data(box_packet)
+                if box_packet.command_code == 3106:
+                    await self.response_button_data(box_packet)
+                if box_packet.command_code == 3201:
+                    await self.response_sensor_data(box_packet)
+                if box_packet.command_code >= 3301 and box_packet.command_code <= 3306:
+                    await self.response_rfid_data(box_packet)
+            else:
+                self.logger.info("crc validate failed")
 
     async def response_connection_status(self, packet):
         payload = (1000).to_bytes(2, byteorder='little') + \
