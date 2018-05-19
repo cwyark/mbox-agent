@@ -141,7 +141,7 @@ class BoxPacketReceiver(asyncio.Protocol):
         response_packet = BoxPacket.builder(zigbee_id = packet.zigbee_id, \
                 device_id = packet.device_id, \
                 counter = packet.counter, payload = payload)
-        self.logger.info("response {} packet: {}".format(packet.command_code, response_packet)
+        self.logger.info("response {} packet: {}".format(packet.command_code, response_packet))
         self.transport.write(response_packet.to_bytes)
 
     def logging_data(self, prefix, data_name, data, packet):
