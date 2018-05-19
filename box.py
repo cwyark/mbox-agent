@@ -78,6 +78,10 @@ class BoxPacket:
     def command_code(self):
         payload = self.payload
         return int.from_bytes(payload[0:2], byteorder='little')
+    
+    @property
+    def to_bytes(self):
+        return bytes(self.msg)
 
 
 class BoxPacketReceiver(asyncio.Protocol):
@@ -126,7 +130,7 @@ class BoxPacketReceiver(asyncio.Protocol):
                 device_id = packet.device_id, \
                 counter = packet.counter, payload = payload)
         self.logger.info("replying connection packet: {}".format(response_packet))
-        self.transport.write(response_packet.msg)
+        self.transport.write(response_packet.to_bytes)
 
     async def response_rfid_data(self, packet):
         payload = (1000).to_bytes(2, byteorder='little') + \
@@ -136,7 +140,7 @@ class BoxPacketReceiver(asyncio.Protocol):
                 device_id = packet.device_id, \
                 counter = packet.counter, payload = payload)
         self.logger.info("replying rfid packet: {}".format(response_packet))
-        self.transport.write(response_packet.msg)
+        self.transport.write(response_packet.to_bytes)
 
     async def response_button_data(self, packet):
         payload = (1000).to_bytes(2, byteorder='little') + \
@@ -146,7 +150,7 @@ class BoxPacketReceiver(asyncio.Protocol):
                 device_id = packet.device_id, \
                 counter = packet.counter, payload = payload)
         self.logger.info("replying button packet: {}".format(response_packet))
-        self.transport.write(response_packet.msg)
+        self.transport.write(response_packet.to_bytes)
 
     async def response_sensor_data(self, packet):
         payload = (1000).to_bytes(2, byteorder='little') + \
@@ -156,7 +160,7 @@ class BoxPacketReceiver(asyncio.Protocol):
                 device_id = packet.device_id, \
                 counter = packet.counter, payload = payload)
         self.logger.info("replying sensor packet: {}".format(response_packet))
-        self.transport.write(response_packet.msg)
+        self.transport.write(response_packet.to_bytes)
 
     async def response_counter_data(self, packet):
         payload = (1000).to_bytes(2, byteorder='little') + \
@@ -166,4 +170,4 @@ class BoxPacketReceiver(asyncio.Protocol):
                 device_id = packet.device_id, \
                 counter = packet.counter, payload = payload)
         self.logger.info("replying counter packet: {}".format(response_packet))
-        self.transport.write(response_packet.msg)
+        self.transport.write(response_packet.to_bytes)
