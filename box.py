@@ -115,6 +115,8 @@ class BoxPacketReceiver(asyncio.Protocol):
                 await self.response_button_data(box_packet)
             if box_packet.command_code == 3201:
                 await self.response_sensor_data(box_packet)
+            if box_packet.command_code >= 3301 and box_packet.command_code <= 3306:
+                await self.response_rfid_data(box_packet)
 
     async def response_connection_status(self, packet):
         payload = (1000).to_bytes(2, byteorder='little') + \
@@ -124,6 +126,15 @@ class BoxPacketReceiver(asyncio.Protocol):
                 device_id = packet.device_id, \
                 counter = packet.counter, payload = payload)
         self.logger.info("replying connection packet: {}".format(response_packet))
+
+    async def response_connection_status(self, packet):
+        payload = (1000).to_bytes(2, byteorder='little') + \
+                (packet.command_code).to_bytes(2, byteorder='little') + \
+                b'\x01'
+        response_packet = BoxPacket.builder(zigbee_id = packet.zigbee_id, \
+                device_id = packet.device_id, \
+                counter = packet.counter, payload = payload)
+        self.logger.info("replying rfid packet: {}".format(response_packet))
 
     async def response_button_status(self, packet):
         payload = (1000).to_bytes(2, byteorder='little') + \
@@ -151,12 +162,3 @@ class BoxPacketReceiver(asyncio.Protocol):
                 device_id = packet.device_id, \
                 counter = packet.counter, payload = payload)
         self.logger.info("replying counter packet: {}".format(response_packet))
-
-
-    def response(self, packet):
-        logger = logging.getLogger('box.response')
-        code = packet.command_code
-        if code == 1002:
-            response_paket = BoxPacket.builder(zigbee_id = packet.zigbee_id, device_id = packet.device_id, counter = packet.counter, payload=packet.payload)
-            logger.debug(response_paket)
-
