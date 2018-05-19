@@ -103,7 +103,7 @@ class BoxPacketReceiver(asyncio.Protocol):
 
     def data_received(self, data):
         self.buffer += data
-        if b'\x55' in data:
+        if b'\x55' in data and b'\x0d' in self.buffer:
             if self.buffer[0] in b'\xaa' and self.buffer[1] in b'\xd1':
                 self.logger.debug(self.buffer)
                 # Need to alloc a new object to put in the queue
@@ -132,7 +132,7 @@ class BoxPacketReceiver(asyncio.Protocol):
                 if box_packet.command_code >= 3301 and box_packet.command_code <= 3306:
                     await self.response_packet(box_packet)
             else:
-                self.logger.info("crc validate failed")
+                self.logger.info("crc validate failed, packet: {}".format(box_packet))
 
     async def response_packet(self, packet):
         payload = (1000).to_bytes(2, byteorder='little') + \
