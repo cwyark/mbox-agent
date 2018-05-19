@@ -123,14 +123,28 @@ class BoxPacketReceiver(asyncio.Protocol):
                 self.logger.info(box_packet)
                 if box_packet.command_code == 1002:
                     await self.response_packet(box_packet)
-                if box_packet.command_code >= 3100 and box_packet.command_code <= 3105:
-                    await self.response_packet(box_packet)
-                if box_packet.command_code == 3106:
-                    await self.response_packet(box_packet)
-                if box_packet.command_code == 3201:
-                    await self.response_packet(box_packet)
                 if box_packet.command_code >= 3301 and box_packet.command_code <= 3306:
+                    index = box_packet.command_code - 3300
+                    self.logging_data("RFID", "Rfid{}".format(index), \
+                            "{:x}".format(box_packet.payload[3:8]), box_packet)
                     await self.response_packet(box_packet)
+
+                if box_packet.command_code >= 3100 and box_packet.command_code <= 3105:
+                    index = box_packet.command_code + 1 - 3100
+                    self.logging_data("BUTTON", "Button{}".format(index), \
+                            "{:d}".format(box_packet.payload[3]), box_packet)
+                    await self.response_packet(box_packet)
+
+                if box_packet.command_code == 3106:
+                    self.logging_data("SENSOR", "Sensor1", \
+                            int.from_bytes(box_packet.payload[3:7], byteorder='little'), box_packet)
+                    await self.response_packet(box_packet)
+
+                if box_packet.command_code == 3201:
+                    self.logging_data("COUNTER", "Counter1", \
+                            int.from_bytes(box_packet.payload[3:5], byteorder='little'), box_packet)
+                    await self.response_packet(box_packet)
+
             else:
                 self.logger.info("crc validate failed, packet: {}".format(box_packet))
 
