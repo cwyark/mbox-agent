@@ -1,11 +1,15 @@
+import os
 import logging
 import asyncio
 import serial_asyncio
 from crc import crc
 from asyncio import Queue
+from datetime import datetime
 
 # Set up default timeout 
 SERIAL_RECV_TIMEOUT = 1.5 # seconds
+
+DATA_FILE_PATH_PREFIX = "/home/pi/Desktop/BoxData"
 
 class BoxPacket:
     def __init__(self, msg):
@@ -92,6 +96,11 @@ class BoxPacketReceiver(asyncio.Protocol):
         self.transport = transport
         self.queue = Queue()
         self.transport.loop.create_task(self.consumer())
+        directory = os.path.dirname(DATA_FILE_PATH_PREFIX)
+        if not os.path.exists(DATA_FILE_PATH_PREFIX):
+            self.logger.info("{} not found, create a new one".format(DATA_FILE_PATH_PREFIX))
+            os.makedirs(DATA_FILE_PATH_PREFIX)
+
     def data_received(self, data):
         self.buffer += data
         if b'\x55' in data:
@@ -113,64 +122,40 @@ class BoxPacketReceiver(asyncio.Protocol):
             if box_packet.crc_validate() is True:
                 self.logger.info(box_packet)
                 if box_packet.command_code == 1002:
-                    await self.response_connection_status(box_packet)
+                    await self.response_packet(box_packet)
                 if box_packet.command_code >= 3100 and box_packet.command_code <= 3105:
-                    await self.response_button_data(box_packet)
+                    await self.response_packet(box_packet)
                 if box_packet.command_code == 3106:
-                    await self.response_button_data(box_packet)
+                    await self.response_packet(box_packet)
                 if box_packet.command_code == 3201:
-                    await self.response_sensor_data(box_packet)
+                    await self.response_packet(box_packet)
                 if box_packet.command_code >= 3301 and box_packet.command_code <= 3306:
-                    await self.response_rfid_data(box_packet)
+                    await self.response_packet(box_packet)
             else:
                 self.logger.info("crc validate failed")
 
-    async def response_connection_status(self, packet):
+    async def response_packet(self, packet):
         payload = (1000).to_bytes(2, byteorder='little') + \
                 (packet.command_code).to_bytes(2, byteorder='little') + \
                 b'\x01'
         response_packet = BoxPacket.builder(zigbee_id = packet.zigbee_id, \
                 device_id = packet.device_id, \
                 counter = packet.counter, payload = payload)
-        self.logger.info("replying connection packet: {}".format(response_packet))
+        self.logger.info("response {} packet: {}".format(packet.command_code, response_packet)
         self.transport.write(response_packet.to_bytes)
 
-    async def response_rfid_data(self, packet):
-        payload = (1000).to_bytes(2, byteorder='little') + \
-                (packet.command_code).to_bytes(2, byteorder='little') + \
-                b'\x01'
-        response_packet = BoxPacket.builder(zigbee_id = packet.zigbee_id, \
-                device_id = packet.device_id, \
-                counter = packet.counter, payload = payload)
-        self.logger.info("replying rfid packet: {}".format(response_packet))
-        self.transport.write(response_packet.to_bytes)
-
-    async def response_button_data(self, packet):
-        payload = (1000).to_bytes(2, byteorder='little') + \
-                (packet.command_code).to_bytes(2, byteorder='little') + \
-                b'\x01'
-        response_packet = BoxPacket.builder(zigbee_id = packet.zigbee_id, \
-                device_id = packet.device_id, \
-                counter = packet.counter, payload = payload)
-        self.logger.info("replying button packet: {}".format(response_packet))
-        self.transport.write(response_packet.to_bytes)
-
-    async def response_sensor_data(self, packet):
-        payload = (1000).to_bytes(2, byteorder='little') + \
-                (packet.command_code).to_bytes(2, byteorder='little') + \
-                b'\x01'
-        response_packet = BoxPacket.builder(zigbee_id = packet.zigbee_id, \
-                device_id = packet.device_id, \
-                counter = packet.counter, payload = payload)
-        self.logger.info("replying sensor packet: {}".format(response_packet))
-        self.transport.write(response_packet.to_bytes)
-
-    async def response_counter_data(self, packet):
-        payload = (1000).to_bytes(2, byteorder='little') + \
-                (packet.command_code).to_bytes(2, byteorder='little') + \
-                b'\x01'
-        response_packet = BoxPacket.builder(zigbee_id = packet.zigbee_id, \
-                device_id = packet.device_id, \
-                counter = packet.counter, payload = payload)
-        self.logger.info("replying counter packet: {}".format(response_packet))
-        self.transport.write(response_packet.to_bytes)
+    def logging_data(self, prefix, data_name, data, packet):
+        now = datetime.now()
+        filename = os.path.join(DATA_FILE_PATH_PREFIX, "%s_%x-%s.txt".format( \
+                prefix, \
+                int.to_bytes(packet.device_id, byteorder='little'), \
+                now.strftime("%Y_%m_%d_%H_%M"))
+                )
+        with open(filename, "aw") as f:
+            f.write("INSERT VALUE InputsTableRaspberry (MBoxId,RecordDate,EventCode,{},SequentialNumber) VALUES ('{:x}', '{}', {}, {}, {})\n".format(data_name, \
+                    int.to_bytes(packet.zigbee_id, byteorder='little'), \
+                    now.strftime("%Y-%m-%d %H:%M:%S"), \
+                    packet.command_code, \
+                    data, \
+                    packet.counter
+                    ))

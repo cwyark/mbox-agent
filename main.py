@@ -3,7 +3,7 @@ import asyncio
 import serial_asyncio
 import uvloop
 from box import BoxPacketReceiver, SERIAL_RECV_TIMEOUT
-from handshakes import internet_connection_checker
+from event import internet_connection_checker
 
 asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 
