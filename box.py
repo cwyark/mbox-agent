@@ -127,7 +127,7 @@ class BoxPacketReceiver(asyncio.Protocol):
                 counter = packet.counter, payload = payload)
         self.logger.info("replying connection packet: {}".format(response_packet))
 
-    async def response_connection_status(self, packet):
+    async def response_rfid_data(self, packet):
         payload = (1000).to_bytes(2, byteorder='little') + \
                 (packet.command_code).to_bytes(2, byteorder='little') + \
                 b'\x01'
@@ -136,7 +136,7 @@ class BoxPacketReceiver(asyncio.Protocol):
                 counter = packet.counter, payload = payload)
         self.logger.info("replying rfid packet: {}".format(response_packet))
 
-    async def response_button_status(self, packet):
+    async def response_button_data(self, packet):
         payload = (1000).to_bytes(2, byteorder='little') + \
                 (packet.command_code).to_bytes(2, byteorder='little') + \
                 b'\x01'
