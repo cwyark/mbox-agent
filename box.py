@@ -1,21 +1,8 @@
 import logging
 import asyncio
 import serial_asyncio
-from asyncio import Queue
 from crc import crc
-
-# Set up the logging subsystem
-logging.basicConfig(level=logging.DEBUG, 
-        format="%(asctime)s %(name)-12s %(levelname)-8s $(message)", 
-        datefmt="%m-%d %H:%M",
-        handlers = [logging.FileHandler('box.log', 'w', 'utf-8'),]
-        )
-
-console = logging.StreamHandler()
-console.setLevel(logging.INFO)
-formatter = logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
-console.setFormatter(formatter)
-logging.getLogger('').addHandler(console)
+from asyncio import Queue
 
 # Set up default timeout 
 SERIAL_RECV_TIMEOUT = 1.5 # seconds
@@ -99,14 +86,15 @@ class BoxPacketReceiver(asyncio.Protocol):
         self.logger = logging.getLogger('box.BoxPacketReceiver')
         self.logger.info("Connection made")
         self.transport = transport
+        self.queue = Queue()
+        self.transport.loop.create_task(self.consumer())
     def data_received(self, data):
         self.buffer += data
         if b'\x55' in data:
             if self.buffer[0] in b'\xaa' and self.buffer[1] in b'\xd1':
                 self.logger.debug(self.buffer)
-                box_packet = BoxPacket(self.buffer)
-                self.logger.info(box_packet)
-                self.response(box_packet)
+                # Need to alloc a new object to put in the queue
+                self.queue.put_nowait(bytearray(self.buffer))
             else:
                 self.logger.info("frame error")
             self.buffer.clear()
@@ -114,10 +102,61 @@ class BoxPacketReceiver(asyncio.Protocol):
         self.logger.info("Connection lost")
         asyncio.get_event_loop.stop()
 
+    async def consumer(self):
+        while True:
+            frame = await self.queue.get()
+            box_packet = BoxPacket(frame)
+            self.logger.info(box_packet)
+            if box_packet.command_code == 1002:
+                await self.response_connection_status(box_packet)
+            if box_packet.command_code >= 3100 and box_packet.command_code <= 3105:
+                await self.response_button_data(box_packet)
+            if box_packet.command_code == 3106:
+                await self.response_button_data(box_packet)
+            if box_packet.command_code == 3201:
+                await self.response_sensor_data(box_packet)
+
+    async def response_connection_status(self, packet):
+        payload = (1000).to_bytes(2, byteorder='little') + \
+                (packet.command_code).to_bytes(2, byteorder='little') + \
+                b'\x01'
+        response_packet = BoxPacket.builder(zigbee_id = packet.zigbee_id, \
+                device_id = packet.device_id, \
+                counter = packet.counter, payload = payload)
+        self.logger.info("replying connection packet: {}".format(response_packet))
+
+    async def response_button_status(self, packet):
+        payload = (1000).to_bytes(2, byteorder='little') + \
+                (packet.command_code).to_bytes(2, byteorder='little') + \
+                b'\x01'
+        response_packet = BoxPacket.builder(zigbee_id = packet.zigbee_id, \
+                device_id = packet.device_id, \
+                counter = packet.counter, payload = payload)
+        self.logger.info("replying button packet: {}".format(response_packet))
+
+    async def response_sensor_data(self, packet):
+        payload = (1000).to_bytes(2, byteorder='little') + \
+                (packet.command_code).to_bytes(2, byteorder='little') + \
+                b'\x01'
+        response_packet = BoxPacket.builder(zigbee_id = packet.zigbee_id, \
+                device_id = packet.device_id, \
+                counter = packet.counter, payload = payload)
+        self.logger.info("replying sensor packet: {}".format(response_packet))
+
+    async def response_counter_data(self, packet):
+        payload = (1000).to_bytes(2, byteorder='little') + \
+                (packet.command_code).to_bytes(2, byteorder='little') + \
+                b'\x01'
+        response_packet = BoxPacket.builder(zigbee_id = packet.zigbee_id, \
+                device_id = packet.device_id, \
+                counter = packet.counter, payload = payload)
+        self.logger.info("replying counter packet: {}".format(response_packet))
+
+
     def response(self, packet):
         logger = logging.getLogger('box.response')
         code = packet.command_code
         if code == 1002:
             response_paket = BoxPacket.builder(zigbee_id = packet.zigbee_id, device_id = packet.device_id, counter = packet.counter, payload=packet.payload)
-            logger.info(response_paket)
+            logger.debug(response_paket)
 
