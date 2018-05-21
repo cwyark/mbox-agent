@@ -47,13 +47,15 @@ class BoxPacketReceiver(asyncio.Protocol):
             if box_packet.crc_validate() is True:
                 self.logger.info(box_packet)
                 if box_packet.command_code == 1002:
-                    if box_packet.zigbee_id not in zigbee_device_list_cache:
-                        zigbee_device_list_cache[box_packet.device_id] = 0
+                    global zigbee_device_list_cache
+                    zigbee_id_int = int.from_bytes(box_packet.zigbee_id, byteorder='little')
+                    if zigbee_id_int not in zigbee_device_list_cache:
+                        zigbee_device_list_cache[zigbee_id_int] = 0
                     await self.response_packet(box_packet)
 
                 if box_packet.command_code >= 3301 and box_packet.command_code <= 3306:
                     index = box_packet.command_code - 3300
-                    self.logging_data("RFID", "Rfid{}".format(index), \
+                    self.logging_data("RFID", "RfId{}".format(index), \
                             "{:x}".format(int.from_bytes(box_packet.payload[3:8], byteorder='little')), box_packet)
                     await self.response_packet(box_packet)
 
@@ -84,6 +86,8 @@ class BoxPacketReceiver(asyncio.Protocol):
                 counter = packet.counter, payload = payload)
         self.logger.info("response {} packet: {}".format(packet.command_code, response_packet))
         self.logger.info("raw {}".format(response_packet.msg))
+# Add 0.08 secs delay in case of the module would received faulty
+        await asyncio.sleep(0.1)
         self.transport.write(response_packet.to_bytes)
 
     def logging_data(self, prefix, data_name, data, packet):
@@ -94,8 +98,8 @@ class BoxPacketReceiver(asyncio.Protocol):
                 now.strftime("%Y_%m_%d_%H_%M"))
                 )
         with open(filename, "a+") as f:
-            f.write("INSERT VALUE InputsTableRaspberry (MBoxId,RecordDate,EventCode,{},SequentialNumber) VALUES ('{:x}', '{}', {}, {}, {})\n".format(data_name, \
-                    int.from_bytes(packet.zigbee_id, byteorder='big'), \
+            f.write("INSERT VALUE InputsTableRaspberry (MBoxId,RecordDate,EventCode,{},SequentialNumber) VALUES ({:x}, '{}', {}, {}, {})\n".format(data_name, \
+                    int.from_bytes(packet.device_id, byteorder='big'), \
                     now.strftime("%Y-%m-%d %H:%M:%S"), \
                     packet.command_code, \
                     data, \

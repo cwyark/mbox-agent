@@ -40,6 +40,7 @@ async def internet_connection_checker(transport, nic_name):
     logger.info("NIC {} first check complete, connection status: {}".format(nic_name, _prev_conn))
     while True:
         _current_conn = check_nic_ip(nic_name)
+        global zigbee_device_list_cache
         if _current_conn != _prev_conn:
             for zigbee_device, counter in zigbee_device_list_cache.items():
                 payload = (1001).to_bytes(2, byteorder='little') + \
@@ -48,7 +49,8 @@ async def internet_connection_checker(transport, nic_name):
                             _int_to_bcd(now.weekday() + 1), _int_to_bcd(now.hour), _int_to_bcd(now.minute), \
                             _int_to_bcd(now.second)) + \
                         b'\x01'
-                packet = ResponsePacket.builder(zigbee_id = zigbee_device, counter = 0, payload = payload)
+                packet = ResponsePacket.builder(zigbee_id = (zigbee_device).to_bytes(2, byteorder='big'), counter = 0, payload = payload)
+                logger.info("Event Sending {}".formatpacket.msg())
                 transport.write(packet.to_bytes)
                 zigbee_device_list_cache[zigbee_device] += 1
             logger.info("Found NIC {} connection changed !".format(nic_name))
