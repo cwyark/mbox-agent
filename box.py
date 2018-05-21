@@ -127,7 +127,7 @@ class BoxPacketReceiver(asyncio.Protocol):
                 if box_packet.command_code >= 3301 and box_packet.command_code <= 3306:
                     index = box_packet.command_code - 3300
                     self.logging_data("RFID", "Rfid{}".format(index), \
-                            "{:x}".format(box_packet.payload[3:8]), box_packet)
+                            "{:x}".format(int._from_bytes(box_packet.payload[3:8], byteorder='little')), box_packet)
                     await self.response_packet(box_packet)
 
                 if box_packet.command_code >= 3100 and box_packet.command_code <= 3105:
@@ -161,14 +161,14 @@ class BoxPacketReceiver(asyncio.Protocol):
 
     def logging_data(self, prefix, data_name, data, packet):
         now = datetime.now()
-        filename = os.path.join(DATA_FILE_PATH_PREFIX, "%s_%x-%s.txt".format( \
+        filename = os.path.join(DATA_FILE_PATH_PREFIX, "{}_{:x}-{}.txt".format( \
                 prefix, \
-                int.to_bytes(packet.device_id, byteorder='little'), \
+                int.from_bytes(packet.device_id, byteorder='big'), \
                 now.strftime("%Y_%m_%d_%H_%M"))
                 )
-        with open(filename, "aw") as f:
+        with open(filename, "a+") as f:
             f.write("INSERT VALUE InputsTableRaspberry (MBoxId,RecordDate,EventCode,{},SequentialNumber) VALUES ('{:x}', '{}', {}, {}, {})\n".format(data_name, \
-                    int.to_bytes(packet.zigbee_id, byteorder='little'), \
+                    int.from_bytes(packet.zigbee_id, byteorder='big'), \
                     now.strftime("%Y-%m-%d %H:%M:%S"), \
                     packet.command_code, \
                     data, \
