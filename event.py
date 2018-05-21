@@ -1,8 +1,25 @@
 import logging
 import asyncio 
 import netifaces as ni
+from packet  import ResponsePacket
+from box import zigbee_device_list_cache
+from datetime import datetime
 
-async def internet_connection_checker(nic_name):
+def _int_to_bcd(n):
+    """
+    Encode a one or two digits number to the BCD.
+
+    """
+    bcd = 0
+    for i in (n // 10, n % 10):
+    	for p in (8, 4, 2, 1):
+            if i >= p:
+                bcd += 1
+                i -= p
+            bcd <<= 1
+    return bcd >> 1
+
+async def internet_connection_checker(transport, nic_name):
     logger = logging.getLogger('handshakes.internet_connection_checker')
     UP = 1
     DOWN = 0
@@ -24,9 +41,19 @@ async def internet_connection_checker(nic_name):
     while True:
         _current_conn = check_nic_ip(nic_name)
         if _current_conn != _prev_conn:
-            await asyncio.sleep(10)
+            for zigbee_device, counter in zigbee_device_list_cache.items():
+                payload = (1001).to_bytes(2, byteorder='little') + \
+         		"{:x}{:x}{:x}{:x}{:x}{:x}{:x}".format(
+			    _int_to_bcd(now.year - 2000), _int_to_bcd(now.month), _int_to_bcd(now.day), \
+                            _int_to_bcd(now.weekday() + 1), _int_to_bcd(now.hour), _int_to_bcd(now.minute), \
+                            _int_to_bcd(now.second)) + \
+                        b'\x01'
+                packet = ResponsePacket.builder(zigbee_id = zigbee_device, counter = 0, payload = payload)
+                transport.write(packet.to_bytes)
+                zigbee_device_list_cache[zigbee_device] += 1
             logger.info("Found NIC {} connection changed !".format(nic_name))
-        # Do not poll the network so fast! poll it every 10 ms
-        await asyncio.sleep(1)
+        # Do not poll the network so fast! poll it every 100 ms
+        await asyncio.sleep(2)
+        logger.info("device list = {}".format(zigbee_device_list_cache))
         _prev_conn = _current_conn
         logger.debug("NIC {} status = {}".format(nic_name, _current_conn))

@@ -23,10 +23,10 @@ logging.getLogger('').addHandler(console)
 if __name__ == "__main__":
     loop = asyncio.get_event_loop()
     coro = serial_asyncio.create_serial_connection(loop, BoxPacketReceiver, "/dev/ttyS0", baudrate=115200, timeout=SERIAL_RECV_TIMEOUT)
+    ser_trans, ser_proto = loop.run_until_complete(coro)
     loop.run_until_complete(asyncio.gather(
-        coro,
-        internet_connection_checker('eth0'),
-        internet_connection_checker('wlan0')
+        internet_connection_checker(ser_trans, 'eth0'),
+        internet_connection_checker(ser_trans, 'wlan0')
         ))
     loop.run_forever()
     loop.close()

@@ -11,6 +11,8 @@ SERIAL_RECV_TIMEOUT = 1.5 # seconds
 
 DATA_FILE_PATH_PREFIX = "/home/pi/Desktop/BoxData"
 
+zigbee_device_list_cache = dict()
+
 class BoxPacketReceiver(asyncio.Protocol):
     buffer = bytearray()
     def connection_made(self, transport):
@@ -45,6 +47,8 @@ class BoxPacketReceiver(asyncio.Protocol):
             if box_packet.crc_validate() is True:
                 self.logger.info(box_packet)
                 if box_packet.command_code == 1002:
+                    if box_packet.zigbee_id not in zigbee_device_list_cache:
+                        zigbee_device_list_cache[box_packet.device_id] = 0
                     await self.response_packet(box_packet)
 
                 if box_packet.command_code >= 3301 and box_packet.command_code <= 3306:
