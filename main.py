@@ -8,10 +8,13 @@ from event import internet_connection_checker
 asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 
 # Set up the logging system
+
+BOX_LOG_PATH = "/home/pi/Desktop/BoxData.log"
+
 logging.basicConfig(level=logging.DEBUG, 
         format="%(asctime)s %(name)-12s %(levelname)-8s %(message)s", 
         datefmt="%m-%d %H:%M",
-        handlers = [logging.FileHandler('box.log', 'w', 'utf-8'),]
+        handlers = [logging.FileHandler(BOX_LOG_PATH, 'w', 'utf-8'),]
         )
 
 console = logging.StreamHandler()
