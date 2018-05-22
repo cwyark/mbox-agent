@@ -27,11 +27,14 @@ async def internet_connection_checker(transport, nic_name):
     def check_nic_ip(nic_name):
         try:
             nic = ni.ifaddresses(nic_name)
-            nic_ip = nic[ni.AF_INET][0]['addr']
-            nic_mask = nic[ni.AF_INET][0]['netmask']
-            nic_gateway = nic[ni.AF_INET][0]['broadcast']
-            connection = UP
-        except ValueError as err:
+            try:
+                nic_ip = nic[ni.AF_INET][0]['addr']
+                nic_mask = nic[ni.AF_INET][0]['netmask']
+                nic_gateway = nic[ni.AF_INET][0]['broadcast']
+                connection = UP
+            except KeyError:
+                connection = DOWN
+        except ValueError:
             connection = DOWN
         return connection
 
