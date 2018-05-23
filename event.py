@@ -36,6 +36,8 @@ async def internet_connection_checker(transport, nic_name):
                 connection = DOWN
         except ValueError:
             connection = DOWN
+        except KeyError:
+            connection  = DOWN
         return connection
 
     # First check the connection status
