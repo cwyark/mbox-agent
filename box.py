@@ -61,7 +61,7 @@ class BoxPacketReceiver(asyncio.Protocol):
                 if box_packet.command_code >= 3301 and box_packet.command_code <= 3306:
                     index = box_packet.command_code - 3300
                     self.logging_data("Mbox", "RfId{}".format(index), \
-                            "{:x}".format(int.from_bytes(box_packet.payload[2:7], byteorder='little')), box_packet)
+                            "{:x}".format(int.from_bytes(box_packet.payload[2:7], byteorder='big')), box_packet)
                     await self.response_packet(box_packet)
 
                 if box_packet.command_code >= 3100 and box_packet.command_code <= 3105:
@@ -72,7 +72,7 @@ class BoxPacketReceiver(asyncio.Protocol):
 
                 if box_packet.command_code == 3106:
                     self.logging_data("Mbox", "Sensor1", \
-                            int.from_bytes(box_packet.payload[2:6], byteorder='big'), box_packet)
+                            int.from_bytes(box_packet.payload[2:6], byteorder='little'), box_packet)
                     await self.response_packet(box_packet)
 
                 if box_packet.command_code == 3201:
