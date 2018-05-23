@@ -50,6 +50,7 @@ class BoxPacketReceiver(asyncio.Protocol):
 
             if box_packet.crc_validate() is True:
                 self.logger.info(box_packet)
+                self.logger.info("received raw {}".format(box_packet.msg))
                 if box_packet.command_code == 1002:
                     global zigbee_device_list_cache
                     zigbee_id_int = int.from_bytes(box_packet.zigbee_id, byteorder='little')
@@ -60,23 +61,23 @@ class BoxPacketReceiver(asyncio.Protocol):
                 if box_packet.command_code >= 3301 and box_packet.command_code <= 3306:
                     index = box_packet.command_code - 3300
                     self.logging_data("Mbox", "RfId{}".format(index), \
-                            "{:x}".format(int.from_bytes(box_packet.payload[3:8], byteorder='little')), box_packet)
+                            "{:x}".format(int.from_bytes(box_packet.payload[2:7], byteorder='little')), box_packet)
                     await self.response_packet(box_packet)
 
                 if box_packet.command_code >= 3100 and box_packet.command_code <= 3105:
                     index = box_packet.command_code + 1 - 3100
                     self.logging_data("Mbox", "Button{}".format(index), \
-                            "{:d}".format(box_packet.payload[3]), box_packet)
+                            "{:d}".format(box_packet.payload[2]), box_packet)
                     await self.response_packet(box_packet)
 
                 if box_packet.command_code == 3106:
                     self.logging_data("Mbox", "Sensor1", \
-                            int.from_bytes(box_packet.payload[3:7], byteorder='little'), box_packet)
+                            int.from_bytes(box_packet.payload[2:6], byteorder='big'), box_packet)
                     await self.response_packet(box_packet)
 
                 if box_packet.command_code == 3201:
                     self.logging_data("Mbox", "Counter1", \
-                            int.from_bytes(box_packet.payload[3:5], byteorder='little'), box_packet)
+                            int.from_bytes(box_packet.payload[2:4], byteorder='little'), box_packet)
                     await self.response_packet(box_packet)
 
             else:
@@ -95,7 +96,7 @@ class BoxPacketReceiver(asyncio.Protocol):
         self.transport.write(response_packet.to_bytes)
 
     def logging_data(self, prefix, data_name, data, packet):
-        self.logger.info("logging data, now is {}, counter is {}".format(self.datetime_now, self.file_counter))
+        self.logger.info("logging data, now is {}, counter is {}, data is {}".format(self.datetime_now, self.file_counter, data))
         self.file_counter += 1
         filename = os.path.join(DATA_FILE_PATH_PREFIX, "{} {}-{}.txt".format( \
                 prefix, \
