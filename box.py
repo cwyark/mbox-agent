@@ -21,6 +21,7 @@ class BoxPacketReceiver(asyncio.Protocol):
         self.transport = transport
         self.queue = Queue()
         self.transport.loop.create_task(self.consumer())
+        self.transport.loop.create_task(self.update_datetime_and_counter())
         directory = os.path.dirname(DATA_FILE_PATH_PREFIX)
         if not os.path.exists(DATA_FILE_PATH_PREFIX):
             self.logger.info("{} not found, create a new one".format(DATA_FILE_PATH_PREFIX))
@@ -46,11 +47,6 @@ class BoxPacketReceiver(asyncio.Protocol):
         while True:
             frame = await self.queue.get()
             box_packet = RequestPacket(frame)
-
-            now = datetime.now()
-            if now.second % 10 == 0:
-                self.datetime_now = now
-                self.file_counter += 1
 
             if box_packet.crc_validate() is True:
                 self.logger.info(box_packet)
@@ -100,6 +96,7 @@ class BoxPacketReceiver(asyncio.Protocol):
 
     def logging_data(self, prefix, data_name, data, packet):
         self.logger.info("logging data, now is {}, counter is {}".format(self.datetime_now, self.file_counter))
+        self.file_counter += 1
         filename = os.path.join(DATA_FILE_PATH_PREFIX, "{} {}-{}.txt".format( \
                 prefix, \
                 self.datetime_now.strftime("%Y-%m-%d-%H-%M-%S"), \
@@ -113,3 +110,11 @@ class BoxPacketReceiver(asyncio.Protocol):
                     data, \
                     packet.counter
                     ))
+
+    async def update_datetime_and_counter(self):
+        while True:
+            now = datetime.now()
+            if now.second % 10 == 0:
+                self.datetime_now = now
+                self.logger.info("update time")
+            await asyncio.sleep(0.7)
