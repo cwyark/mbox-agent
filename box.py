@@ -41,9 +41,17 @@ class BoxPacketReceiver(asyncio.Protocol):
         asyncio.get_event_loop.stop()
 
     async def consumer(self):
+        self.datetime_now = datetime.now()
+        self.file_counter = 0
         while True:
             frame = await self.queue.get()
             box_packet = RequestPacket(frame)
+
+            now = datetime.now()
+            if now.second % 10 == 0:
+                self.datetime_now = now
+                self.file_counter += 1
+
             if box_packet.crc_validate() is True:
                 self.logger.info(box_packet)
                 if box_packet.command_code == 1002:
@@ -55,23 +63,23 @@ class BoxPacketReceiver(asyncio.Protocol):
 
                 if box_packet.command_code >= 3301 and box_packet.command_code <= 3306:
                     index = box_packet.command_code - 3300
-                    self.logging_data("RFID", "RfId{}".format(index), \
+                    self.logging_data("Mbox", "RfId{}".format(index), \
                             "{:x}".format(int.from_bytes(box_packet.payload[3:8], byteorder='little')), box_packet)
                     await self.response_packet(box_packet)
 
                 if box_packet.command_code >= 3100 and box_packet.command_code <= 3105:
                     index = box_packet.command_code + 1 - 3100
-                    self.logging_data("BUTTON", "Button{}".format(index), \
+                    self.logging_data("Mbox", "Button{}".format(index), \
                             "{:d}".format(box_packet.payload[3]), box_packet)
                     await self.response_packet(box_packet)
 
                 if box_packet.command_code == 3106:
-                    self.logging_data("SENSOR", "Sensor1", \
+                    self.logging_data("Mbox", "Sensor1", \
                             int.from_bytes(box_packet.payload[3:7], byteorder='little'), box_packet)
                     await self.response_packet(box_packet)
 
                 if box_packet.command_code == 3201:
-                    self.logging_data("COUNTER", "Counter1", \
+                    self.logging_data("Mbox", "Counter1", \
                             int.from_bytes(box_packet.payload[3:5], byteorder='little'), box_packet)
                     await self.response_packet(box_packet)
 
@@ -91,16 +99,16 @@ class BoxPacketReceiver(asyncio.Protocol):
         self.transport.write(response_packet.to_bytes)
 
     def logging_data(self, prefix, data_name, data, packet):
-        now = datetime.now()
-        filename = os.path.join(DATA_FILE_PATH_PREFIX, "{}_{:x}-{}.txt".format( \
+        filename = os.path.join(DATA_FILE_PATH_PREFIX, "{} {}-{}.txt".format( \
                 prefix, \
-                int.from_bytes(packet.device_id, byteorder='big'), \
-                now.strftime("%Y_%m_%d_%H_%M"))
+                #int.from_bytes(packet.device_id, byteorder='big'), \
+                self.datetime_now.strftime("%Y-%m-%d-%H-%M-%S")), \
+                self.file_counter
                 )
         with open(filename, "a+") as f:
             f.write("INSERT VALUE InputsTableRaspberry (MBoxId,RecordDate,EventCode,{},SequentialNumber) VALUES ({:x}, '{}', {}, {}, {})\n".format(data_name, \
                     int.from_bytes(packet.device_id, byteorder='big'), \
-                    now.strftime("%Y-%m-%d %H:%M:%S"), \
+                    self.datetime_now.strftime("%Y-%m-%d %H:%M:%S"), \
                     packet.command_code, \
                     data, \
                     packet.counter
