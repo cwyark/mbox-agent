@@ -99,12 +99,12 @@ class BoxPacketReceiver(asyncio.Protocol):
         self.transport.write(response_packet.to_bytes)
 
     def logging_data(self, prefix, data_name, data, packet):
+        self.logger.info("logging data, now is {}, counter is {}".format(self.datetime_now, self.file_counter))
         filename = os.path.join(DATA_FILE_PATH_PREFIX, "{} {}-{}.txt".format( \
                 prefix, \
-                #int.from_bytes(packet.device_id, byteorder='big'), \
-                self.datetime_now.strftime("%Y-%m-%d-%H-%M-%S")), \
-                self.file_counter
-                )
+                self.datetime_now.strftime("%Y-%m-%d-%H-%M-%S"), \
+                self.file_counter 
+                ))
         with open(filename, "a+") as f:
             f.write("INSERT VALUE InputsTableRaspberry (MBoxId,RecordDate,EventCode,{},SequentialNumber) VALUES ({:x}, '{}', {}, {}, {})\n".format(data_name, \
                     int.from_bytes(packet.device_id, byteorder='big'), \
