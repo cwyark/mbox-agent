@@ -46,7 +46,7 @@ class BoxPacketReceiver(asyncio.Protocol):
             frame = await self.queue.get()
             packet = RequestPacket(frame)
             self.logger.info("===> {:r}".format(packet))
-            self.logger.info("request {:s}".format(packet))
+            self.logger.info("===> {:s}".format(packet))
             if packet.crc_validate() is True:
                 if packet.command_code == 1002:
                     global zigbee_device_list_cache
@@ -75,7 +75,7 @@ class BoxPacketReceiver(asyncio.Protocol):
         payload = Struct("<HHB").pack(1000, packet.command_code, 1)
         response_packet = ResponsePacket.builder(zigbee_id = packet.zigbee_id, \
                 counter = packet.counter, payload = payload)
-        self.logger.info("response {:s}".format(response_packet))
+        self.logger.info("<=== {:s}".format(response_packet))
         self.logger.info("<=== {:r}".format(response_packet))
 # Add 0.1 secs delay in case of the zigbee module would received faulty
         await asyncio.sleep(0.1)
