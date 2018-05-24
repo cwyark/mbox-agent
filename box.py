@@ -67,7 +67,7 @@ class BoxPacketReceiver(asyncio.Protocol):
                         )
                 while self.sql_queue.empty() is not True:
                     q = self.sql_queue.get_nowait()
-                    with open(file_name, "a+") as f:
+                    with open(os.path.join(DATA_FILE_PATH_PREFIX, file_name), "a+") as f:
                         f.write(q)
 
     async def consumer(self):
