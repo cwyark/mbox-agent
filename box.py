@@ -100,7 +100,7 @@ class BoxPacketReceiver(asyncio.Protocol):
                     await self.response_packet(packet)
 
                     SQL_STMT = DATA_LOG_FORMAT.format(\
-                            "Sensor{}".format(index), \
+                            "Sensor1", \
                             packet.device_id,\
                             packet.zigbee_id, \
                             datetime.now().strftime("%Y-%m-%d %H:%M:%S"), \
@@ -114,7 +114,7 @@ class BoxPacketReceiver(asyncio.Protocol):
                     await self.response_packet(packet)
 
                     SQL_STMT = DATA_LOG_FORMAT.format(\
-                            "Counter{}".format(index), \
+                            "Counter1", \
                             packet.device_id,\
                             packet.zigbee_id, \
                             datetime.now().strftime("%Y-%m-%d %H:%M:%S"), \
