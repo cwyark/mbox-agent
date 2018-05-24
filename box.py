@@ -22,7 +22,9 @@ class BoxPacketReceiver(asyncio.Protocol):
         self.logger.info("Connection made")
         self.transport = transport
         self.queue = Queue()
+        self.sql_queue = Queue()
         self.transport.loop.create_task(self.consumer())
+        self.transport.loop.create_task(self.data_logger_task())
         directory = os.path.dirname(DATA_FILE_PATH_PREFIX)
         if not os.path.exists(DATA_FILE_PATH_PREFIX):
             self.logger.info("{} not found, create a new one".format(DATA_FILE_PATH_PREFIX))
@@ -52,6 +54,16 @@ class BoxPacketReceiver(asyncio.Protocol):
         await asyncio.sleep(0.1)
         self.transport.write(response_packet.frame)
 
+    async def data_logger_task(self):
+        self.file_counter = 0
+        while True:
+            now = datetime.now()
+            await asyncio.sleep(0.7)
+            if now.second % 10 == 0:
+                self.file_counter += 1
+                self.logger.info("SQL QUEUE: {}".format(self.sql_queue))
+                self.logger.info("File Counter: {}".format(self.file_counter))
+
     async def consumer(self):
         while True:
             frame = await self.queue.get()
@@ -80,6 +92,7 @@ class BoxPacketReceiver(asyncio.Protocol):
                             packet.counter
                         )
                     self.logger.info("SQL STMT: {}".format(SQL_STMT))
+                    self.sql_queue.put_nowait(SQL_STMT)
 
                 if packet.command_code >= 3100 and packet.command_code <= 3105:
                     index = packet.command_code + 1 - 3100
@@ -95,6 +108,7 @@ class BoxPacketReceiver(asyncio.Protocol):
                             packet.counter
                         )
                     self.logger.info("SQL STMT: {}".format(SQL_STMT))
+                    self.sql_queue.put_nowait(SQL_STMT)
 
                 if packet.command_code == 3106:
                     await self.response_packet(packet)
@@ -109,6 +123,7 @@ class BoxPacketReceiver(asyncio.Protocol):
                             packet.counter
                         )
                     self.logger.info("SQL STMT: {}".format(SQL_STMT))
+                    self.sql_queue.put_nowait(SQL_STMT)
 
                 if packet.command_code == 3201:
                     await self.response_packet(packet)
@@ -123,22 +138,7 @@ class BoxPacketReceiver(asyncio.Protocol):
                             packet.counter
                         )
                     self.logger.info("SQL STMT: {}".format(SQL_STMT))
+                    self.sql_queue.put_nowait(SQL_STMT)
 
             else:
                 self.logger.info("CRC Error, packet: {!r}".format(packet))
-
-    def logging_data(self, prefix, data_name, data, packet):
-        self.file_counter += 1
-        filename = os.path.join(DATA_FILE_PATH_PREFIX, "{} {}-{}.txt".format( \
-                prefix, \
-                self.datetime_now.strftime("%Y-%m-%d-%H-%M-%S"), \
-                self.file_counter 
-                ))
-        with open(filename, "a+") as f:
-            f.write("INSERT VALUE InputsTableRaspberry (MBoxId,RecordDate,EventCode,{},SequentialNumber) VALUES ({:x}, '{}', {}, {}, {})\n".format(data_name, \
-                    int.from_bytes(packet.device_id, byteorder='big'), \
-                    self.datetime_now.strftime("%Y-%m-%d %H:%M:%S"), \
-                    packet.command_code, \
-                    data, \
-                    packet.counter
-                    ))
