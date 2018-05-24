@@ -33,9 +33,9 @@ class BasePacket:
 class RequestPacket(BasePacket):
 
     def __str__(self):
-        return "RequestPacket <ZigbeeID>0x{zigbee_id:x}, <TotalBytes>{total_bytes}, <DeviceID>0x{device_id:x}, <Counter>{counter}, <Payload>{payload}, <CRC>0x{crc:x}".format(zigbee_id=self.zigbee_id, \
+        return "RequestPacket\t<ZigbeeID>0x{zigbee_id:04x}\t<TotalBytes>{total_bytes}\t<DeviceID>0x{device_id:08x}\t<Counter>{counter}\t<Command>{command}\t<Payload>{payload}\t<CRC>0x{crc:04x}".format(zigbee_id=self.zigbee_id, \
                 total_bytes=self.total_bytes, device_id=self.device_id, counter=self.counter, \
-                payload=self.payload, crc=self.crc)
+                command=self.command_code, payload=self.payload, crc=self.crc)
 
     @classmethod
     def builder(cls, zigbee_id, device_id, counter, payload=b'\x00\x00'):
@@ -63,9 +63,9 @@ class RequestPacket(BasePacket):
 class ResponsePacket(BasePacket):
 
     def __str__(self):
-        return "ResponsePacket 0x<ZigbeeID>{zigbee_id:x}, <TotalBytes>{total_bytes}, <Counter>{counter}, <Payload>{payload}, <CRC>0x{crc:x}".format(zigbee_id=self.zigbee_id, \
+        return "ResponsePacket\t<ZigbeeID>0x{zigbee_id:04x}\t<TotalBytes>{total_bytes}\t<Counter>{counter}\t<Command>{command_code}\t<ReplyCode>{reply_code}\t<CRC>0x{crc:04x}".format(zigbee_id=self.zigbee_id, \
                 total_bytes=self.total_bytes, counter=self.counter, \
-                payload=self.payload, crc=self.crc)
+                command_code=self.command_code, reply_code=self.reply_code, crc=self.crc)
 
     @classmethod
     def builder(cls, zigbee_id, counter, payload=b'\x00\x00'):
@@ -85,3 +85,11 @@ class ResponsePacket(BasePacket):
                 self.counter, self.crc, self.end_1, \
                 self.end_2 = Struct("<BBHBLHBB").unpack(data)
         self.payload = payload
+
+    @property
+    def command_code(self):
+        return int.from_bytes(self.payload[0:2], byteorder='little')
+
+    @property
+    def reply_code(self):
+        return int.from_bytes(self.payload[2:4], byteorder='little')

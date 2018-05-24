@@ -45,8 +45,8 @@ class BoxPacketReceiver(asyncio.Protocol):
         while True:
             frame = await self.queue.get()
             packet = RequestPacket(frame)
-            self.logger.info("===> {!r}".format(packet))
             self.logger.info("===> {!s}".format(packet))
+            self.logger.info("===> {!r}".format(packet))
             if packet.crc_validate() is True:
                 if packet.command_code == 1002:
                     global zigbee_device_list_cache
