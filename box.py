@@ -87,7 +87,7 @@ class BoxPacketReceiver(asyncio.Protocol):
                         zigbee_device_list_cache[packet.zigbee_id] = 0
                     await self.response_packet(packet)
 
-                        SQL_STMT = DATA_LOG_FORMAT.format(\
+                    SQL_STMT = DATA_LOG_FORMAT.format(\
                             "Mbox-model-and-Version", \
                             packet.device_id,\
                             packet.zigbee_id, \
