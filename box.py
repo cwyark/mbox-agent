@@ -62,7 +62,7 @@ class BoxPacketReceiver(asyncio.Protocol):
                     index = packet.command_code + 1 - 3100
                     await self.response_packet(packet)
 
-                if pacekt.command_code == 3106:
+                if packet.command_code == 3106:
                     await self.response_packet(packet)
 
                 if packet.command_code == 3201:
