@@ -4,6 +4,7 @@ import netifaces as ni
 from packet  import ResponsePacket
 from box import zigbee_device_list_cache
 from datetime import datetime
+from struct import Struct, pack, unpack
 
 def _int_to_bcd(n):
     """
@@ -48,14 +49,18 @@ async def internet_connection_checker(transport, nic_name):
         global zigbee_device_list_cache
         if _current_conn != _prev_conn:
             for zigbee_device, counter in zigbee_device_list_cache.items():
-                payload = (1001).to_bytes(2, byteorder='little') + \
-         		"{:x}{:x}{:x}{:x}{:x}{:x}{:x}".format(
-			    _int_to_bcd(now.year - 2000), _int_to_bcd(now.month), _int_to_bcd(now.day), \
-                            _int_to_bcd(now.weekday() + 1), _int_to_bcd(now.hour), _int_to_bcd(now.minute), \
-                            _int_to_bcd(now.second)) + \
-                        b'\x01'
-                packet = ResponsePacket.builder(zigbee_id = (zigbee_device).to_bytes(2, byteorder='big'), counter = 0, payload = payload)
-                logger.info("Event Sending {}".formatpacket.msg())
+                payload = Struct("<HBBBBBBBB").pack(1000, \
+                        _int_to_bcd(now.year - 2000), \
+                        _int_to_bcd(now.month), \
+                        _int_to_bcd(now.day), \
+                        _int_to_bcd(now.weekday + 1), \
+                        _int_to_bcd(now.hour), \
+                        _int_to_bcd(now.minute), \
+                        _int_to_bcd(now.second), \
+                        1)
+                packet = ResponsePacket.builder(zigbee_id = zigbee_device, counter = counter, payload = payload)
+                logger.info("EVENT <== {!s}".format(packet))
+                logger.info("EVENT <== {!r}".format(packet))
                 transport.write(packet.to_bytes)
                 zigbee_device_list_cache[zigbee_device] += 1
             logger.info("Found NIC {} connection changed !".format(nic_name))
@@ -63,4 +68,3 @@ async def internet_connection_checker(transport, nic_name):
         await asyncio.sleep(2)
         logger.debug("device list = {}".format(zigbee_device_list_cache))
         _prev_conn = _current_conn
-        logger.debug("NIC {} status = {}".format(nic_name, _current_conn))
