@@ -68,8 +68,10 @@ class BoxPacketReceiver(asyncio.Protocol):
                     self.file_counter += 1
                 while self.sql_queue.empty() is not True:
                     q = self.sql_queue.get_nowait()
+                    self.logger.info("Get SQL Q {}".format(q))
                     with open(os.path.join(DATA_FILE_PATH_PREFIX, file_name), "a+") as f:
                         f.write(q)
+                        self.logger.info("Write SQL Q {} to {}".format(q, file_name))
 
     async def consumer(self):
         while True:
@@ -84,6 +86,18 @@ class BoxPacketReceiver(asyncio.Protocol):
                     if packet.zigbee_id not in zigbee_device_list_cache:
                         zigbee_device_list_cache[packet.zigbee_id] = 0
                     await self.response_packet(packet)
+
+                        SQL_STMT = DATA_LOG_FORMAT.format(\
+                            "Mbox-model-and-Version", \
+                            packet.device_id,\
+                            packet.zigbee_id, \
+                            datetime.now().strftime("%Y-%m-%d %H:%M:%S"), \
+                            packet.command_code, \
+                            "{:s}".format(int.from_bytes(packet.payload[2:27], byteorder='big')), \
+                            packet.counter
+                        )
+                    self.logger.info("SQL STMT: {}".format(SQL_STMT))
+                    self.sql_queue.put_nowait(SQL_STMT)
 
                 if packet.command_code >= 3301 and packet.command_code <= 3306:
                     index = packet.command_code - 3300
