@@ -11,6 +11,7 @@ from struct import Struct, pack, unpack
 SERIAL_RECV_TIMEOUT = 1.5 # seconds
 
 DATA_FILE_PATH_PREFIX = "/home/pi/Desktop/BoxData"
+DATA_LOG_FORMAT = "INSERT VALUE InputsTableRaspberry (MBoxId,ZigbeeId,RecordDate,EventCode,{},SequentialNumber) VALUE ({:x}, {:x}, '{}', {}, {}, {})"
 
 zigbee_device_list_cache = dict()
 
@@ -41,6 +42,16 @@ class BoxPacketReceiver(asyncio.Protocol):
         self.logger.info("Connection lost")
         asyncio.get_event_loop.stop()
 
+    async def response_packet(self, packet):
+        payload = Struct("<HHB").pack(1000, packet.command_code, 1)
+        response_packet = ResponsePacket.builder(zigbee_id = packet.zigbee_id, \
+                counter = packet.counter, payload = payload)
+        self.logger.info("<=== {!s}".format(response_packet))
+        self.logger.info("<=== {!r}".format(response_packet))
+# Add 0.1 secs delay in case of the zigbee module would received faulty
+        await asyncio.sleep(0.1)
+        self.transport.write(response_packet.frame)
+
     async def consumer(self):
         while True:
             frame = await self.queue.get()
@@ -48,6 +59,7 @@ class BoxPacketReceiver(asyncio.Protocol):
             self.logger.info("===> {!s}".format(packet))
             self.logger.info("===> {!r}".format(packet))
             if packet.crc_validate() is True:
+
                 if packet.command_code == 1002:
                     global zigbee_device_list_cache
                     if packet.zigbee_id not in zigbee_device_list_cache:
@@ -58,28 +70,62 @@ class BoxPacketReceiver(asyncio.Protocol):
                     index = packet.command_code - 3300
                     await self.response_packet(packet)
 
+                    SQL_STMT = DATA_LOG_FORMAT.format(\
+                            "RfId{}".fotmat(index), \
+                            packet.device_id,\
+                            packet.zigbee_id, \
+                            datetime.now().strftime("%Y-%m-%d %H:%M:%S"), \
+                            packet.command_code, \
+                            "{:x}".format(int.from_bytes(packet.payload[2:7], byteorder='big')), \
+                            packet.counter
+                        )
+                    self.logger.info("SQL STMT: {}".format(SQL_STMT))
+
                 if packet.command_code >= 3100 and packet.command_code <= 3105:
                     index = packet.command_code + 1 - 3100
                     await self.response_packet(packet)
 
+                    SQL_STMT = DATA_LOG_FORMAT.format(\
+                            "Button{}".fotmat(index), \
+                            packet.device_id,\
+                            packet.zigbee_id, \
+                            datetime.now().strftime("%Y-%m-%d %H:%M:%S"), \
+                            packet.command_code, \
+                            "{:d}".format(packet.payload[2]), \
+                            packet.counter
+                        )
+                    self.logger.info("SQL STMT: {}".format(SQL_STMT))
+
                 if packet.command_code == 3106:
                     await self.response_packet(packet)
+
+                    SQL_STMT = DATA_LOG_FORMAT.format(\
+                            "Sensor{}".fotmat(index), \
+                            packet.device_id,\
+                            packet.zigbee_id, \
+                            datetime.now().strftime("%Y-%m-%d %H:%M:%S"), \
+                            packet.command_code, \
+                            int.from_bytes(packet.payload[2:6], byteorder='little'), \
+                            packet.counter
+                        )
+                    self.logger.info("SQL STMT: {}".format(SQL_STMT))
 
                 if packet.command_code == 3201:
                     await self.response_packet(packet)
 
-            else:
-                self.logger.info("CRC , packet: {}".format(packet))
+                    SQL_STMT = DATA_LOG_FORMAT.format(\
+                            "Counter{}".fotmat(index), \
+                            packet.device_id,\
+                            packet.zigbee_id, \
+                            datetime.now().strftime("%Y-%m-%d %H:%M:%S"), \
+                            packet.command_code, \
+                            int.from_bytes(packet.payload[2:4], byteorder='little'), \
+                            packet.counter
+                        )
+                    self.logger.info("SQL STMT: {}".format(SQL_STMT))
 
-    async def response_packet(self, packet):
-        payload = Struct("<HHB").pack(1000, packet.command_code, 1)
-        response_packet = ResponsePacket.builder(zigbee_id = packet.zigbee_id, \
-                counter = packet.counter, payload = payload)
-        self.logger.info("<=== {!s}".format(response_packet))
-        self.logger.info("<=== {!r}".format(response_packet))
-# Add 0.1 secs delay in case of the zigbee module would received faulty
-        await asyncio.sleep(0.1)
-        self.transport.write(response_packet.frame)
+            else:
+                self.logger.info("CRC Error, packet: {!r}".format(packet))
 
     def logging_data(self, prefix, data_name, data, packet):
         self.file_counter += 1
