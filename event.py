@@ -61,6 +61,6 @@ async def internet_connection_checker(transport, nic_name):
             logger.info("Found NIC {} connection changed !".format(nic_name))
         # Do not poll the network so fast! poll it every 100 ms
         await asyncio.sleep(2)
-        logger.info("device list = {}".format(zigbee_device_list_cache))
+        logger.debug("device list = {}".format(zigbee_device_list_cache))
         _prev_conn = _current_conn
         logger.debug("NIC {} status = {}".format(nic_name, _current_conn))
