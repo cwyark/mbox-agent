@@ -61,9 +61,14 @@ class BoxPacketReceiver(asyncio.Protocol):
             await asyncio.sleep(0.7)
             if now.second % 10 == 0:
                 self.file_counter += 1
+                file_name = "Mbox {}-{}.txt".format( \
+                        now.strftime("%Y-%m-%d-%H-%M-%S"), \
+                        self.file_counter
+                        )
                 while self.sql_queue.empty() is not True:
                     q = self.sql_queue.get_nowait()
-                    self.logger.info("q is {}".format(q))
+                    with open(file_name, "a+") as f:
+                        f.write(q)
 
     async def consumer(self):
         while True:
