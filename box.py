@@ -61,8 +61,9 @@ class BoxPacketReceiver(asyncio.Protocol):
             await asyncio.sleep(0.7)
             if now.second % 10 == 0:
                 self.file_counter += 1
-                self.logger.info("SQL QUEUE: {}".format(self.sql_queue))
-                self.logger.info("File Counter: {}".format(self.file_counter))
+                while !self.sql_queue.empty():
+                    q = self.sql_queue.get_nowait()
+                    self.logger.info("q is {}".format(q))
 
     async def consumer(self):
         while True:
