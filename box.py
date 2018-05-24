@@ -11,7 +11,7 @@ from struct import Struct, pack, unpack
 SERIAL_RECV_TIMEOUT = 1.5 # seconds
 
 DATA_FILE_PATH_PREFIX = "/home/pi/Desktop/BoxData"
-DATA_LOG_FORMAT = "INSERT VALUE InputsTableRaspberry (MBoxId,ZigbeeId,RecordDate,EventCode,{},SequentialNumber) VALUE (0x{:x}, 0x{:x}, '{}', {}, {}, {})"
+DATA_LOG_FORMAT = "INSERT VALUE InputsTableRaspberry (MBoxId,ZigbeeId,RecordDate,EventCode,{},SequentialNumber) VALUE (0x{:x}, 0x{:x}, '{}', {}, {}, {})\n"
 
 zigbee_device_list_cache = dict()
 
