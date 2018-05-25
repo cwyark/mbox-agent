@@ -10,6 +10,7 @@ class BasePacket:
             raise ValueError("BasePacket: frame type is not bytearray")
         self.unpack()
 
+
     def __repr__(self):
         return ' '.join('{:02x}'.format(x) for x in self.frame)
 
@@ -55,6 +56,9 @@ class RequestPacket(BasePacket):
                 self.device_id, self.counter, self.crc, self.end_1, \
                 self.end_2 = Struct("<BBHBLLHBB").unpack(data)
         self.payload = payload
+# a workaround
+        self.zigbee_id = int.from_bytes(self.zigbee_id.to_bytes(2, byteorder='little'), byteorder='big')
+        self.device_id = int.from_bytes(self.device_id.to_bytes(4, byteorder='little'), byteorder='big')
     
     @property
     def command_code(self):
@@ -85,6 +89,8 @@ class ResponsePacket(BasePacket):
                 self.counter, self.crc, self.end_1, \
                 self.end_2 = Struct("<BBHBLHBB").unpack(data)
         self.payload = payload
+# A workaround
+        self.zigbee_id = int.from_bytes(self.zigbee_id.to_bytes(2, byteorder='little'), byteorder='big')
 
     @property
     def command_code(self):

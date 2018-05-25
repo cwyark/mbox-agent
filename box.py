@@ -93,7 +93,7 @@ class BoxPacketReceiver(asyncio.Protocol):
                             packet.zigbee_id, \
                             datetime.now().strftime("%Y-%m-%d %H:%M:%S"), \
                             packet.command_code, \
-                            "{:s}".format(int.from_bytes(packet.payload[2:27], byteorder='big')), \
+                            "'{!s}'".format(packet.payload[2:30].decode()), \
                             packet.counter
                         )
                     self.logger.info("SQL STMT: {}".format(SQL_STMT))
