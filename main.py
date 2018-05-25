@@ -16,7 +16,7 @@ BOX_LOG_PATH = "/home/pi/Desktop/BoxData.log"
 logging.basicConfig(level=logging.DEBUG, 
         format="%(asctime)s %(name)-12s %(levelname)-8s %(message)s", 
         datefmt="%m-%d %H:%M",
-        handlers = [logging.FileHandler(BOX_LOG_PATH, 'w', 'utf-8'),]
+        handlers = [logging.FileHandler(BOX_LOG_PATH, 'a+', 'utf-8'),]
         )
 
 console = logging.StreamHandler()
