@@ -18,7 +18,7 @@ zigbee_device_list_cache = dict()
 class BoxPacketReceiver(asyncio.Protocol):
     buffer = bytearray()
     def connection_made(self, transport):
-        self.logger = logging.getLogger('box.BoxPacketReceiver')
+        self.logger = logging.getLogger(__name__)
         self.logger.info("Connection made")
         self.transport = transport
         self.queue = Queue()

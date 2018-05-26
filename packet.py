@@ -5,7 +5,7 @@ from struct import Struct, pack, unpack
 class BasePacket:
     def __init__(self, frame):
         self.frame = frame
-        self.logger = logging.getLogger('packet.BasePacket')
+        self.logger = logging.getLogger(__name__)
         if type(frame) != bytearray:
             raise ValueError("BasePacket: frame type is not bytearray")
         self.unpack()

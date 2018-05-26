@@ -21,7 +21,7 @@ def _int_to_bcd(n):
     return bcd >> 1
 
 async def internet_connection_checker(transport, nic_name):
-    logger = logging.getLogger('handshakes.internet_connection_checker')
+    logger = logging.getLogger(__name__)
     UP = 1
     DOWN = 0
 
