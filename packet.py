@@ -73,6 +73,9 @@ class ResponsePacket(BasePacket):
 
     @classmethod
     def builder(cls, zigbee_id, counter, payload=b'\x00\x00'):
+        # A workaround
+        zigbee_id = int.from_bytes(zigbee_id.to_bytes(2, byteorder='little'), byteorder='big')
+
         total_bytes = (1 + 4 + len(payload) + 2 ) & 0xFF
         buffer = bytearray(Struct("<BBHBLHBB").pack(0xAA, 0xD1, zigbee_id, total_bytes, \
                     counter, 0x00, 0x0D, 0x55))
