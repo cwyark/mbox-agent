@@ -50,8 +50,8 @@ class BoxPacketReceiver(asyncio.Protocol):
                 counter = packet.counter, payload = payload)
         self.logger.info("<=== {!s}".format(response_packet))
         self.logger.info("<=== {!r}".format(response_packet))
-# Add 0.1 secs delay in case of the zigbee module would received faulty
-        await asyncio.sleep(0.1)
+# Add 0.2 secs delay in case of the zigbee module would received faulty
+        await asyncio.sleep(0.2)
         self.transport.write(response_packet.frame)
 
     async def data_logger_task(self):

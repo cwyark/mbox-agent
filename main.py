@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import logging
+import logging.handlers
 import asyncio
 import serial_asyncio
 import uvloop
@@ -16,7 +17,9 @@ BOX_LOG_PATH = "/home/pi/Desktop/BoxData.log"
 logging.basicConfig(level=logging.DEBUG, 
         format="%(asctime)s %(name)-12s %(levelname)-8s %(message)s", 
         datefmt="%m-%d %H:%M",
-        handlers = [logging.FileHandler(BOX_LOG_PATH, 'a+', 'utf-8'),]
+        handlers = [logging.FileHandler(BOX_LOG_PATH, 'a+', 'utf-8'), 
+                logging.handlers.SysLogHandler(address = '/dev/log')
+            ]
         )
 
 console = logging.StreamHandler()
