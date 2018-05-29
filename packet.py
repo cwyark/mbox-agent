@@ -14,10 +14,13 @@ class BasePacket:
     def __repr__(self):
         return ' '.join('{:02x}'.format(x) for x in self.frame)
 
+    def format_bytearray(self, buf):
+        return ' '.join('{:02x}'.format(x) for x in buf)
+
     def __str__(self):
-        return "BasePacket <ZigbeeID>0x{zigbee_id:x}, <TotalBytes>{total_bytes}, <DeviceID>{device_id:x}, <Counter>{counter}, <Payload>{payload}, <CRC>0x{crc:x}".format(zigbee_id=self.zigbee_id, \
+        return "BasePacket <ZigbeeID>0x{zigbee_id:04x} <TotalBytes>{total_bytes} <DeviceID>{device_id:08x} <Counter>{counter} <Payload>{payload} <CRC>0x{crc:04x}".format(zigbee_id=self.zigbee_id, \
                 total_bytes=self.total_bytes, device_id=self.device_id, counter=self.counter, \
-                payload=self.payload, crc=self.crc)
+                payload=self.format_bytearray(self.payload), crc=self.crc)
 
     def unpack(self):
         payload = self.frame[13:-4]
@@ -34,9 +37,9 @@ class BasePacket:
 class RequestPacket(BasePacket):
 
     def __str__(self):
-        return "RequestPacket  <ZigbeeID>0x{zigbee_id:04x}  <TotalBytes>{total_bytes}  <DeviceID>0x{device_id:08x}  <Counter>{counter}  <Command>{command}  <Payload>{payload}  <CRC>0x{crc:04x}".format(zigbee_id=self.zigbee_id, \
+        return "RequestPacket <ZigbeeID>0x{zigbee_id:04x} <TotalBytes>{total_bytes} <DeviceID>0x{device_id:08x} <Counter>{counter} <Command>{command} <Payload>{payload} <CRC>0x{crc:04x}".format(zigbee_id=self.zigbee_id, \
                 total_bytes=self.total_bytes, device_id=self.device_id, counter=self.counter, \
-                command=self.command_code, payload=self.payload, crc=self.crc)
+                command=self.command_code, payload=self.format_bytearray(self.payload), crc=self.crc)
 
     @classmethod
     def builder(cls, zigbee_id, device_id, counter, payload=b'\x00\x00'):
@@ -67,7 +70,7 @@ class RequestPacket(BasePacket):
 class ResponsePacket(BasePacket):
 
     def __str__(self):
-        return "ResponsePacket  <ZigbeeID>0x{zigbee_id:04x}  <TotalBytes>{total_bytes}  <Counter>{counter}  <Command>{command_code}  <ReplyCode>{reply_code}  <CRC>0x{crc:04x}".format(zigbee_id=self.zigbee_id, \
+        return "ResponsePacket <ZigbeeID>0x{zigbee_id:04x} <TotalBytes>{total_bytes} <Counter>{counter} <Command>{command_code} <ReplyCode>{reply_code} <CRC>0x{crc:04x}".format(zigbee_id=self.zigbee_id, \
                 total_bytes=self.total_bytes, counter=self.counter, \
                 command_code=self.command_code, reply_code=self.reply_code, crc=self.crc)
 

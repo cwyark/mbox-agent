@@ -19,7 +19,6 @@ class BoxPacketReceiver(asyncio.Protocol):
     buffer = bytearray()
     def connection_made(self, transport):
         self.logger = logging.getLogger(__name__)
-        self.logger.info("Connection made")
         self.transport = transport
         self.queue = Queue()
         self.sql_queue = Queue()
@@ -27,7 +26,7 @@ class BoxPacketReceiver(asyncio.Protocol):
         self.transport.loop.create_task(self.data_logger_task())
         directory = os.path.dirname(DATA_FILE_PATH_PREFIX)
         if not os.path.exists(DATA_FILE_PATH_PREFIX):
-            self.logger.info("{} not found, create a new one".format(DATA_FILE_PATH_PREFIX))
+            self.logger.debug("[EVT]<LOGGING> [CAUSE]<none> [MSG]<{} not found, create a new one>".format(DATA_FILE_PATH_PREFIX))
             os.makedirs(DATA_FILE_PATH_PREFIX)
 
     def data_received(self, data):
@@ -37,19 +36,17 @@ class BoxPacketReceiver(asyncio.Protocol):
                 # Need to alloc a new object to put in the queue
                 self.queue.put_nowait(bytearray(self.buffer))
             else:
-                self.logger.info("frame error")
+                self.logger.info("[EVT]<PKT> [CAUSE]<frame error> [MSG]<{}>".format(' '.join('{:02}'.format(x) for x in self.buffer)))
             self.buffer.clear()
 
     def connection_lost(self, exc):
-        self.logger.info("Connection lost")
         asyncio.get_event_loop.stop()
 
     async def response_packet(self, packet):
         payload = Struct("<HHB").pack(1000, packet.command_code, 1)
         response_packet = ResponsePacket.builder(zigbee_id = packet.zigbee_id, \
                 counter = packet.counter, payload = payload)
-        self.logger.info("<=== {!s}".format(response_packet))
-        self.logger.info("<=== {!r}".format(response_packet))
+        self.logger.info("[EVT]<PKT> [CAUSE]<reply message> [MSG]<{!s}> [RAW]<{!r}>".format(response_packet, response_packet))
 # Add 0.2 secs delay in case of the zigbee module would received faulty
         await asyncio.sleep(0.2)
         self.transport.write(response_packet.frame)
@@ -68,17 +65,16 @@ class BoxPacketReceiver(asyncio.Protocol):
                     self.file_counter += 1
                 while self.sql_queue.empty() is not True:
                     q = self.sql_queue.get_nowait()
-                    self.logger.info("Get SQL Q {}".format(q))
+                    self.logger.info("[EVT]<SQL> [CAUSE]<get q> [MSG]<{}>".format(q))
                     with open(os.path.join(DATA_FILE_PATH_PREFIX, file_name), "a+") as f:
                         f.write(q)
-                        self.logger.info("Write SQL Q {} to {}".format(q, file_name))
+                        self.logger.info("[EVT]<SQL> [CAUSE]<write to file> [MSG]<{}>".format(file_name))
 
     async def consumer(self):
         while True:
             frame = await self.queue.get()
             packet = RequestPacket(frame)
-            self.logger.info("===> {!s}".format(packet))
-            self.logger.info("===> {!r}".format(packet))
+            self.logger.info("[EVT]<PKT> [CAUSE]<got message> [MSG]<{!s}> [RAW]<{!r}>".format(packet, packet))
             if packet.crc_validate() is True:
 
                 if packet.command_code == 1002:
@@ -96,7 +92,6 @@ class BoxPacketReceiver(asyncio.Protocol):
                             "'{!s}'".format(packet.payload[2:30].decode()), \
                             packet.counter
                         )
-                    self.logger.info("SQL STMT: {}".format(SQL_STMT))
                     self.sql_queue.put_nowait(SQL_STMT)
 
                 if packet.command_code >= 3301 and packet.command_code <= 3306:
@@ -112,7 +107,6 @@ class BoxPacketReceiver(asyncio.Protocol):
                             "{:x}".format(int.from_bytes(packet.payload[2:7], byteorder='big')), \
                             packet.counter
                         )
-                    self.logger.info("SQL STMT: {}".format(SQL_STMT))
                     self.sql_queue.put_nowait(SQL_STMT)
 
                 if packet.command_code >= 3100 and packet.command_code <= 3105:
@@ -128,7 +122,6 @@ class BoxPacketReceiver(asyncio.Protocol):
                             "{:d}".format(packet.payload[2]), \
                             packet.counter
                         )
-                    self.logger.info("SQL STMT: {}".format(SQL_STMT))
                     self.sql_queue.put_nowait(SQL_STMT)
 
                 if packet.command_code == 3106:
@@ -143,7 +136,6 @@ class BoxPacketReceiver(asyncio.Protocol):
                             int.from_bytes(packet.payload[2:6], byteorder='little'), \
                             packet.counter
                         )
-                    self.logger.info("SQL STMT: {}".format(SQL_STMT))
                     self.sql_queue.put_nowait(SQL_STMT)
 
                 if packet.command_code == 3201:
@@ -158,8 +150,9 @@ class BoxPacketReceiver(asyncio.Protocol):
                             int.from_bytes(packet.payload[2:4], byteorder='little'), \
                             packet.counter
                         )
-                    self.logger.info("SQL STMT: {}".format(SQL_STMT))
                     self.sql_queue.put_nowait(SQL_STMT)
 
+                self.logger.info("[EVT]<SQL> [CAUSE]<none> [MSG]<{}>".format(SQL_STMT))
+
             else:
-                self.logger.info("CRC Error, packet: {!r}".format(packet))
+                self.logger.info("[EVT]<SQL> [CAUSE]<CRC Error> [MSG]<{!r}>".format(packet))

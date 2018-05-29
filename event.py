@@ -43,7 +43,7 @@ async def internet_connection_checker(transport, nic_name):
 
     # First check the connection status
     _prev_conn = check_nic_ip(nic_name)
-    logger.info("NIC {} first check complete, connection status: {}".format(nic_name, _prev_conn))
+    logger.info("[EVT]<NIC> [CAUSE]<{}> [MSG]<connection {}>".format(nic_name, _prev_conn))
     while True:
         _current_conn = check_nic_ip(nic_name)
         global zigbee_device_list_cache
@@ -60,12 +60,10 @@ async def internet_connection_checker(transport, nic_name):
                         _int_to_bcd(now.second), \
                         1)
                 packet = ResponsePacket.builder(zigbee_id = zigbee_device, counter = counter, payload = payload)
-                logger.info("EVENT <== {!s}".format(packet))
-                logger.info("EVENT <== {!r}".format(packet))
+                logger.info("[EVT]<PKTOUT> [CAUSE]<{} status changed> [MSG]<{!s}> [RAW]<{!r}>".format(nic_name, packet, packet))
                 transport.write(packet.frame)
                 zigbee_device_list_cache[zigbee_device] += 1
-            logger.info("Found NIC {} connection changed !".format(nic_name))
+            logger.info("[EVT]<NIC> [CAUSE]<none> [MSG]<{} connection {}>".format(nic_name), _current_conn)
         # Do not poll the network so fast! poll it every 100 ms
         await asyncio.sleep(2)
-        logger.debug("device list = {}".format(zigbee_device_list_cache))
         _prev_conn = _current_conn
