@@ -12,7 +12,7 @@ from crc import crc
 SERIAL_RECV_TIMEOUT = 1.5 # seconds
 
 DATA_FILE_PATH_PREFIX = "/home/pi/Desktop/BoxData"
-DATA_LOG_FORMAT = "INSERT INTO InputsTableRaspberry (MBoxId,ZigbeeId,RecordDate,EventCode,{},SequentialNumber) VALUE ('{:x}', '{:x}', '{}', {}, {}, {})\n"
+DATA_LOG_FORMAT = "INSERT INTO InputsTableRaspberry (MBoxId,RecordDate,EventCode,{},SequentialNumber) VALUE ('{:x}', '{}', {}, {}, {})\n"
 
 zigbee_device_list_cache = dict()
 
@@ -90,7 +90,6 @@ class BoxPacketReceiver(asyncio.Protocol):
                     SQL_STMT = DATA_LOG_FORMAT.format(\
                             "Mbox-model-and-Version", \
                             packet.device_id,\
-                            packet.zigbee_id, \
                             datetime.now().strftime("%Y-%m-%d %H:%M:%S"), \
                             packet.command_code, \
                             "'{!s}'".format(packet.payload[2:30].decode()), \
@@ -105,7 +104,6 @@ class BoxPacketReceiver(asyncio.Protocol):
                     SQL_STMT = DATA_LOG_FORMAT.format(\
                             "RfId{}".format(index), \
                             packet.device_id,\
-                            packet.zigbee_id, \
                             datetime.now().strftime("%Y-%m-%d %H:%M:%S"), \
                             packet.command_code, \
                             "{:x}".format(int.from_bytes(packet.payload[2:7], byteorder='big')), \
@@ -120,7 +118,6 @@ class BoxPacketReceiver(asyncio.Protocol):
                     SQL_STMT = DATA_LOG_FORMAT.format(\
                             "Button{}".format(index), \
                             packet.device_id,\
-                            packet.zigbee_id, \
                             datetime.now().strftime("%Y-%m-%d %H:%M:%S"), \
                             packet.command_code, \
                             "{:d}".format(packet.payload[2]), \
@@ -134,7 +131,6 @@ class BoxPacketReceiver(asyncio.Protocol):
                     SQL_STMT = DATA_LOG_FORMAT.format(\
                             "Sensor1", \
                             packet.device_id,\
-                            packet.zigbee_id, \
                             datetime.now().strftime("%Y-%m-%d %H:%M:%S"), \
                             packet.command_code, \
                             int.from_bytes(packet.payload[2:6], byteorder='little'), \
@@ -148,7 +144,6 @@ class BoxPacketReceiver(asyncio.Protocol):
                     SQL_STMT = DATA_LOG_FORMAT.format(\
                             "Counter1", \
                             packet.device_id,\
-                            packet.zigbee_id, \
                             datetime.now().strftime("%Y-%m-%d %H:%M:%S"), \
                             packet.command_code, \
                             int.from_bytes(packet.payload[2:4], byteorder='little'), \
