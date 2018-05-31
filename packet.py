@@ -18,7 +18,7 @@ class BasePacket:
         return ' '.join('{:02x}'.format(x) for x in buf)
 
     def __str__(self):
-        return "BasePacket <ZigbeeID>0x{zigbee_id:04x} <TotalBytes>{total_bytes} <DeviceID>{device_id:08x} <Counter>{counter} <Payload>{payload} <CRC>0x{crc:04x}".format(zigbee_id=self.zigbee_id, \
+        return "BasePacket ZigbeeID:0x{zigbee_id:04x} TotalBytes:{total_bytes} DeviceID:{device_id:08x} Counter:{counter} Payload({payload}) CRC:0x{crc:04x}".format(zigbee_id=self.zigbee_id, \
                 total_bytes=self.total_bytes, device_id=self.device_id, counter=self.counter, \
                 payload=self.format_bytearray(self.payload), crc=self.crc)
 
@@ -47,7 +47,7 @@ class BasePacket:
 class RequestPacket(BasePacket):
 
     def __str__(self):
-        return "RequestPacket <ZigbeeID>0x{zigbee_id:04x} <TotalBytes>{total_bytes} <DeviceID>0x{device_id:08x} <Counter>{counter} <Command>{command} <Payload>{payload} <CRC>0x{crc:04x}".format(zigbee_id=self.zigbee_id, \
+        return "RequestPacket ZigbeeID:0x{zigbee_id:04x} TotalBytes:{total_bytes} DeviceID:0x{device_id:08x} Counter:{counter} Command:{command} Payload({payload}) CRC:0x{crc:04x}".format(zigbee_id=self.zigbee_id, \
                 total_bytes=self.total_bytes, device_id=self.device_id, counter=self.counter, \
                 command=self.command_code, payload=self.format_bytearray(self.payload), crc=self.crc)
 
@@ -83,7 +83,7 @@ class RequestPacket(BasePacket):
 class ResponsePacket(BasePacket):
 
     def __str__(self):
-        return "ResponsePacket <ZigbeeID>0x{zigbee_id:04x} <TotalBytes>{total_bytes} <Counter>{counter} <Command>{command_code} <ReplyCode>{reply_code} <CRC>0x{crc:04x}".format(zigbee_id=self.zigbee_id, \
+        return "ResponsePacket ZigbeeID:0x{zigbee_id:04x} TotalBytes:{total_bytes} Counter:{counter} Command:{command_code} ReplyCode:{reply_code} CRC:0x{crc:04x}".format(zigbee_id=self.zigbee_id, \
                 total_bytes=self.total_bytes, counter=self.counter, \
                 command_code=self.command_code, reply_code=self.reply_code, crc=self.crc)
 
