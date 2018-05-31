@@ -31,7 +31,14 @@ class BasePacket:
         self.payload = payload
 
     def crc_validate(self):
-        return (self.crc == crc(self.frame[4:-4]))
+        if self.crc != crc(self.frame[4:-4]):
+            # For some cases, crc value might be as the same as 0D 55
+            if self.crc == crc(self.frame[4:-2]):
+                return True
+            else:
+                return False
+        else:
+            return True
 
 
 class RequestPacket(BasePacket):

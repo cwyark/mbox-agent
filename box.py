@@ -6,6 +6,7 @@ from asyncio import Queue
 from datetime import datetime
 from packet import RequestPacket, ResponsePacket
 from struct import Struct, pack, unpack
+from crc import crc
 
 # Set up default timeout 
 SERIAL_RECV_TIMEOUT = 1.5 # seconds
@@ -34,9 +35,12 @@ class BoxPacketReceiver(asyncio.Protocol):
         if b'\x55' in data and b'\x0d' in self.buffer:
             if self.buffer[0] in b'\xaa' and self.buffer[1] in b'\xd1':
                 # Need to alloc a new object to put in the queue
+                if b'\xaa\xd1\x80\x03\x11\x55' in self.buffer:
+                    # A wrokaround because some times module send out aa d1 80 03 11 55 
+                    self.buffer = self.buffer[6:]
                 self.queue.put_nowait(bytearray(self.buffer))
             else:
-                self.logger.info("[EVT]<PKT> [CAUSE]<frame error> [MSG]<{}>".format(' '.join('{:02}'.format(x) for x in self.buffer)))
+                self.logger.error("[EVT]<PKT> [CAUSE]<frame error> [MSG]<{}>".format(' '.join('{:02}'.format(x) for x in self.buffer)))
             self.buffer.clear()
 
     def connection_lost(self, exc):
@@ -155,4 +159,4 @@ class BoxPacketReceiver(asyncio.Protocol):
                 self.logger.info("[EVT]<SQL> [CAUSE]<none> [MSG]<{}>".format(SQL_STMT))
 
             else:
-                self.logger.info("[EVT]<SQL> [CAUSE]<CRC Error> [MSG]<{!r}>".format(packet))
+                self.logger.error("[EVT]<SQL> [CAUSE]<CRC error> [MSG]<{!r}>".format(packet))
