@@ -25,9 +25,12 @@ class BasePacket:
     def unpack(self):
         payload = self.frame[13:-4]
         data = self.frame[:13] + self.frame[-4:]
-        self.header_1, self.header_2, self.zigbee_id, self.total_bytes, \
-                self.device_id, self.counter, self.crc, self.end_1, \
-                self.end_2 = Struct("<BBHBLLHBB").unpack(data)
+        try:
+            self.header_1, self.header_2, self.zigbee_id, self.total_bytes, \
+                    self.device_id, self.counter, self.crc, self.end_1, \
+                    self.end_2 = Struct("<BBHBLLHBB").unpack(data)
+        except:
+            self.logger.error("[EVT]<PKT> [CAUSE]<payload deserialize not work> [MSG]<none>")
         self.payload = payload
 
     def crc_validate(self):
@@ -62,9 +65,12 @@ class RequestPacket(BasePacket):
     def unpack(self):
         payload = self.frame[13:-4]
         data = self.frame[:13] + self.frame[-4:]
-        self.header_1, self.header_2, self.zigbee_id, self.total_bytes, \
-                self.device_id, self.counter, self.crc, self.end_1, \
-                self.end_2 = Struct("<BBHBLLHBB").unpack(data)
+        try:
+            self.header_1, self.header_2, self.zigbee_id, self.total_bytes, \
+                    self.device_id, self.counter, self.crc, self.end_1, \
+                    self.end_2 = Struct("<BBHBLLHBB").unpack(data)
+        except:
+            self.logger.error("[EVT]<PKT> [CAUSE]<payload deserialize not work> [MSG]<none>")
         self.payload = payload
 # a workaround
         self.zigbee_id = int.from_bytes(self.zigbee_id.to_bytes(2, byteorder='little'), byteorder='big')
@@ -98,9 +104,12 @@ class ResponsePacket(BasePacket):
     def unpack(self):
         payload = self.frame[9:-4]
         data = self.frame[:9] + self.frame[-4:]
-        self.header_1, self.header_2, self.zigbee_id, self.total_bytes, \
-                self.counter, self.crc, self.end_1, \
-                self.end_2 = Struct("<BBHBLHBB").unpack(data)
+        try:
+            self.header_1, self.header_2, self.zigbee_id, self.total_bytes, \
+                    self.counter, self.crc, self.end_1, \
+                    self.end_2 = Struct("<BBHBLHBB").unpack(data)
+        except:
+            self.logger.error("[EVT]<PKT> [CAUSE]<payload deserialize not work> [MSG]<none>")
         self.payload = payload
 # A workaround
         self.zigbee_id = int.from_bytes(self.zigbee_id.to_bytes(2, byteorder='little'), byteorder='big')
