@@ -1,4 +1,3 @@
 uvloop
-pyserial_asyncio
 pyserial
 netifaces
