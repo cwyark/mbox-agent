@@ -4,9 +4,9 @@ import asyncio
 import serial_asyncio
 from asyncio import Queue
 from datetime import datetime
-from packet import RequestPacket, ResponsePacket
 from struct import Struct, pack, unpack
-from crc import crc
+from .crc import crc
+from .packet import RequestPacket, ResponsePacket
 
 # Set up default timeout 
 SERIAL_RECV_TIMEOUT = 1.5 # seconds

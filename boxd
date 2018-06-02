@@ -6,8 +6,8 @@ import logging.handlers
 import asyncio
 import serial_asyncio
 import uvloop
-from box import BoxPacketReceiver, SERIAL_RECV_TIMEOUT
-from event import internet_connection_checker
+from boxagent.box import BoxPacketReceiver, SERIAL_RECV_TIMEOUT
+from boxagent.event import internet_connection_checker
 
 asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 
@@ -28,9 +28,9 @@ if __name__ == "__main__":
         logger.info("[EVT]<daemon> [CAUSE]<none> [MSG]<{} is already running, exit>".format(PID_FILE_PATH))
         sys.exit()
 
-    logger.inof("[EVT]<daemon> [CAUSE]<none> [MSG]<BoxAgent start>")
+    logger.info("[EVT]<daemon> [CAUSE]<none> [MSG]<BoxAgent start>")
 
-    file(PID_FILE_PATH, "w").write(str(os.getpid()))   
+    open(PID_FILE_PATH, "w").write(str(os.getpid()))   
 
     try:
         loop = asyncio.get_event_loop()

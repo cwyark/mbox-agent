@@ -1,5 +1,5 @@
 import logging
-from crc import crc
+from .crc import crc
 from struct import Struct, pack, unpack
 
 class BasePacket:
