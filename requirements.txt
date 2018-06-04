@@ -1,3 +1,0 @@
-uvloop
-pyserial
-netifaces
