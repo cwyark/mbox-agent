@@ -1,7 +1,6 @@
 import os
 import logging
 import asyncio
-import serial_asyncio
 from asyncio import Queue
 from datetime import datetime
 from struct import Struct, pack, unpack

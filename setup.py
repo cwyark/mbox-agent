@@ -18,6 +18,7 @@ setup(
     ],
     scripts = ['boxd'],
     install_requires = ['uvloop',
+        'pyserial',
         'netifaces',
         'click'],
     classifiers = [
