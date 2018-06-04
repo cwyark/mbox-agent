@@ -76,81 +76,84 @@ class BoxPacketReceiver(asyncio.Protocol):
     async def consumer(self):
         while True:
             frame = await self.queue.get()
-            packet = RequestPacket(frame)
-            self.logger.info("[EVT]<PKT> [CAUSE]<got message> [MSG]<{!s}> [RAW]<{!r}>".format(packet, packet))
-            if packet.crc_validate() is True:
+            try:
+                packet = RequestPacket(frame)
+                self.logger.info("[EVT]<PKT> [CAUSE]<got message> [MSG]<{!s}> [RAW]<{!r}>".format(packet, packet))
+                if packet.crc_validate() is True:
 
-                if packet.command_code == 1002:
-                    global zigbee_device_list_cache
-                    if packet.zigbee_id not in zigbee_device_list_cache:
-                        zigbee_device_list_cache[packet.zigbee_id] = 0
-                    await self.response_packet(packet)
+                    if packet.command_code == 1002:
+                        global zigbee_device_list_cache
+                        if packet.zigbee_id not in zigbee_device_list_cache:
+                            zigbee_device_list_cache[packet.zigbee_id] = 0
+                        await self.response_packet(packet)
 
-                    SQL_STMT = DATA_LOG_FORMAT.format(\
-                            "Mbox-model-and-Version", \
-                            packet.device_id,\
-                            datetime.now().strftime("%Y-%m-%d %H:%M:%S"), \
-                            packet.command_code, \
-                            "'{!s}'".format(packet.payload[2:30].decode()), \
-                            packet.counter
-                        )
-                    self.sql_queue.put_nowait(SQL_STMT)
+                        SQL_STMT = DATA_LOG_FORMAT.format(\
+                                "Mbox-model-and-Version", \
+                                packet.device_id,\
+                                datetime.now().strftime("%Y-%m-%d %H:%M:%S"), \
+                                packet.command_code, \
+                                "'{!s}'".format(packet.payload[2:30].decode()), \
+                                packet.counter
+                            )
+                        self.sql_queue.put_nowait(SQL_STMT)
 
-                if packet.command_code >= 3301 and packet.command_code <= 3306:
-                    index = packet.command_code - 3300
-                    await self.response_packet(packet)
+                    if packet.command_code >= 3301 and packet.command_code <= 3306:
+                        index = packet.command_code - 3300
+                        await self.response_packet(packet)
 
-                    SQL_STMT = DATA_LOG_FORMAT.format(\
-                            "RfId{}".format(index), \
-                            packet.device_id,\
-                            datetime.now().strftime("%Y-%m-%d %H:%M:%S"), \
-                            packet.command_code, \
-                            "{:x}".format(int.from_bytes(packet.payload[2:7], byteorder='big')), \
-                            packet.counter
-                        )
-                    self.sql_queue.put_nowait(SQL_STMT)
+                        SQL_STMT = DATA_LOG_FORMAT.format(\
+                                "RfId{}".format(index), \
+                                packet.device_id,\
+                                datetime.now().strftime("%Y-%m-%d %H:%M:%S"), \
+                                packet.command_code, \
+                                "{:x}".format(int.from_bytes(packet.payload[2:7], byteorder='big')), \
+                                packet.counter
+                            )
+                        self.sql_queue.put_nowait(SQL_STMT)
 
-                if packet.command_code >= 3100 and packet.command_code <= 3105:
-                    index = packet.command_code + 1 - 3100
-                    await self.response_packet(packet)
+                    if packet.command_code >= 3100 and packet.command_code <= 3105:
+                        index = packet.command_code + 1 - 3100
+                        await self.response_packet(packet)
 
-                    SQL_STMT = DATA_LOG_FORMAT.format(\
-                            "Button{}".format(index), \
-                            packet.device_id,\
-                            datetime.now().strftime("%Y-%m-%d %H:%M:%S"), \
-                            packet.command_code, \
-                            "{:d}".format(packet.payload[2]), \
-                            packet.counter
-                        )
-                    self.sql_queue.put_nowait(SQL_STMT)
+                        SQL_STMT = DATA_LOG_FORMAT.format(\
+                                "Button{}".format(index), \
+                                packet.device_id,\
+                                datetime.now().strftime("%Y-%m-%d %H:%M:%S"), \
+                                packet.command_code, \
+                                "{:d}".format(packet.payload[2]), \
+                                packet.counter
+                            )
+                        self.sql_queue.put_nowait(SQL_STMT)
 
-                if packet.command_code == 3106:
-                    await self.response_packet(packet)
+                    if packet.command_code == 3106:
+                        await self.response_packet(packet)
 
-                    SQL_STMT = DATA_LOG_FORMAT.format(\
-                            "Sensor1", \
-                            packet.device_id,\
-                            datetime.now().strftime("%Y-%m-%d %H:%M:%S"), \
-                            packet.command_code, \
-                            int.from_bytes(packet.payload[2:6], byteorder='little'), \
-                            packet.counter
-                        )
-                    self.sql_queue.put_nowait(SQL_STMT)
+                        SQL_STMT = DATA_LOG_FORMAT.format(\
+                                "Sensor1", \
+                                packet.device_id,\
+                                datetime.now().strftime("%Y-%m-%d %H:%M:%S"), \
+                                packet.command_code, \
+                                int.from_bytes(packet.payload[2:6], byteorder='little'), \
+                                packet.counter
+                            )
+                        self.sql_queue.put_nowait(SQL_STMT)
 
-                if packet.command_code == 3201:
-                    await self.response_packet(packet)
+                    if packet.command_code == 3201:
+                        await self.response_packet(packet)
 
-                    SQL_STMT = DATA_LOG_FORMAT.format(\
-                            "Counter1", \
-                            packet.device_id,\
-                            datetime.now().strftime("%Y-%m-%d %H:%M:%S"), \
-                            packet.command_code, \
-                            int.from_bytes(packet.payload[2:4], byteorder='little'), \
-                            packet.counter
-                        )
-                    self.sql_queue.put_nowait(SQL_STMT)
+                        SQL_STMT = DATA_LOG_FORMAT.format(\
+                                "Counter1", \
+                                packet.device_id,\
+                                datetime.now().strftime("%Y-%m-%d %H:%M:%S"), \
+                                packet.command_code, \
+                                int.from_bytes(packet.payload[2:4], byteorder='little'), \
+                                packet.counter
+                            )
+                        self.sql_queue.put_nowait(SQL_STMT)
 
-                self.logger.info("[EVT]<SQL> [CAUSE]<none> [MSG]<{}>".format(SQL_STMT))
+                    self.logger.info("[EVT]<SQL> [CAUSE]<none> [MSG]<{}>".format(SQL_STMT))
 
-            else:
-                self.logger.error("[EVT]<SQL> [CAUSE]<CRC error> [MSG]<{!r}>".format(packet))
+                else:
+                    self.logger.error("[EVT]<SQL> [CAUSE]<CRC error> [MSG]<{!r}>".format(packet))
+            except Exception as e:
+                self.oogger.error("[EVT]<PKT> [CAUSE]<loop exception> [MSG]<{!s}>", str(e))

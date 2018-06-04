@@ -24,7 +24,7 @@ logging.basicConfig(level=logging.DEBUG,
 @click.option('--device', default="/dev/ttyS0", help='serial device name')
 @click.option('--baudrate', default=115200, type=int, help='serial device baudrate')
 @click.option('--pidfile', default=PID_FILE_PATH, help='pidfile path')
-@click.option('--watch-nic', help="watch NIC list")
+@click.option('--watch-nic', default="eth0", help="watch NIC list")
 def server(device, baudrate, pidfile, watch_nic):
     logger = logging.getLogger(__name__)
 

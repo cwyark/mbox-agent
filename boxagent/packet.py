@@ -69,12 +69,12 @@ class RequestPacket(BasePacket):
             self.header_1, self.header_2, self.zigbee_id, self.total_bytes, \
                     self.device_id, self.counter, self.crc, self.end_1, \
                     self.end_2 = Struct("<BBHBLLHBB").unpack(data)
+            self.payload = payload
+            # a workaround
+            self.zigbee_id = int.from_bytes(self.zigbee_id.to_bytes(2, byteorder='little'), byteorder='big')
+            self.device_id = int.from_bytes(self.device_id.to_bytes(4, byteorder='little'), byteorder='big')
         except:
             self.logger.error("[EVT]<PKT> [CAUSE]<payload deserialize not work> [MSG]<none>")
-        self.payload = payload
-# a workaround
-        self.zigbee_id = int.from_bytes(self.zigbee_id.to_bytes(2, byteorder='little'), byteorder='big')
-        self.device_id = int.from_bytes(self.device_id.to_bytes(4, byteorder='little'), byteorder='big')
     
     @property
     def command_code(self):
@@ -108,11 +108,11 @@ class ResponsePacket(BasePacket):
             self.header_1, self.header_2, self.zigbee_id, self.total_bytes, \
                     self.counter, self.crc, self.end_1, \
                     self.end_2 = Struct("<BBHBLHBB").unpack(data)
+            self.payload = payload
+            # A workaround
+            self.zigbee_id = int.from_bytes(self.zigbee_id.to_bytes(2, byteorder='little'), byteorder='big')
         except:
             self.logger.error("[EVT]<PKT> [CAUSE]<payload deserialize not work> [MSG]<none>")
-        self.payload = payload
-# A workaround
-        self.zigbee_id = int.from_bytes(self.zigbee_id.to_bytes(2, byteorder='little'), byteorder='big')
 
     @property
     def command_code(self):
