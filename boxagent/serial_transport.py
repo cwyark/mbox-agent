@@ -365,3 +365,9 @@ class SerialTransport(asyncio.Transport):
             self._serial = None
             self._protocol = None
             self._loop = None
+
+async def create_serial_connection(loop, protocol_factory, *args, **kwargs):
+    ser = serial.serial_for_url(*args, **kwargs)
+    protocol = protocol_factory()
+    transport = SerialTransport(loop, protocol, ser)
+    return (transport, protocol)

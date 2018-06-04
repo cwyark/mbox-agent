@@ -34,11 +34,9 @@ def server():
 
     try:
         loop = asyncio.get_event_loop()
-        import serial
-        ser = serial.serial_for_url("/dev/ttyS0", baudrate=115200, timeout=SERIAL_RECV_TIMEOUT)
-        proto = BoxPacketReceiver()
-        ser_trans = SerialTransport(loop, proto, ser)
-        ser_trans, _ = loop.run_until_complete((ser_trans, proto))
+        ser_coro = create_serial_connection(loop, BoxPacketReceiver, "/dev/ttyS0", baudrate=115200, timeout=SERIAL_RECV_TIMEOUT)
+        ser_trans, _ = loop.run_until_complete(ser_coro)
+
         loop.run_until_complete(asyncio.gather(
             internet_connection_checker(ser_trans, 'eth0'),
             internet_connection_checker(ser_trans, 'wlan0')
