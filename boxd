@@ -8,7 +8,7 @@ import uvloop
 import click
 from boxagent.box import BoxPacketReceiver, SERIAL_RECV_TIMEOUT
 from boxagent.event import internet_connection_checker
-from boxagent.serial_transport import SerialTransport
+from boxagent.serial_transport import SerialTransport, create_serial_connection
 
 asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 
