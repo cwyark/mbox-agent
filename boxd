@@ -21,33 +21,40 @@ logging.basicConfig(level=logging.DEBUG,
             ]
         )
 @click.command()
-def server():
+@click.option('--device', default="/dev/ttyS0", help='serial device name')
+@click.option('--baudrate', default=115200, type=int, help='serial device baudrate')
+@click.option('--pidfile', default=PID_FILE_PATH, help='pidfile path')
+@click.option('--watch-nic', help="watch NIC list")
+def server(device, baudrate, pidfile, watch_nic):
     logger = logging.getLogger(__name__)
 
-    if os.path.isfile(PID_FILE_PATH):
-        logger.info("[EVT]<daemon> [CAUSE]<none> [MSG]<{} is already running, exit>".format(PID_FILE_PATH))
+    if os.path.isfile(pidfile):
+        logger.info("[EVT]<daemon> [CAUSE]<none> [MSG]<{} is already running, exit>".format(pidfile))
         sys.exit()
 
     logger.info("[EVT]<daemon> [CAUSE]<none> [MSG]<BoxAgent start>")
 
-    open(PID_FILE_PATH, "w").write(str(os.getpid()))   
+    open(pidfile, "w").write(str(os.getpid()))   
 
     try:
         loop = asyncio.get_event_loop()
-        ser_coro = create_serial_connection(loop, BoxPacketReceiver, "/dev/ttyS0", baudrate=115200, timeout=SERIAL_RECV_TIMEOUT)
+        ser_coro = create_serial_connection(loop, BoxPacketReceiver, device, baudrate=baudrate, timeout=SERIAL_RECV_TIMEOUT)
         ser_trans, _ = loop.run_until_complete(ser_coro)
+        
+        if watch_nic is not None:
+            watch_nic_list = watch_nic.split(',')
 
-        loop.run_until_complete(asyncio.gather(
-            internet_connection_checker(ser_trans, 'eth0'),
-            internet_connection_checker(ser_trans, 'wlan0')
-            ))
+            tasks = [internet_connection_checker(ser_trans, nic) for nic in watch_nic_list]
+
+            loop.run_until_complete(asyncio.gather(*tasks))
+
         loop.run_forever()
     except Exception as e:
         logger.info("[EVT]<daemon> [CAUSE]<none> [MSG]<Loop exception: {}>".format(str(e)))
     finally:
         logger.info("[EVT]<daemon> [CUASE]<none> [MSG]<BoxAgent end>")
         loop.close()
-        os.unlink(PID_FILE_PATH)
+        os.unlink(pidfile)
 
 if __name__ == "__main__":
     server()
