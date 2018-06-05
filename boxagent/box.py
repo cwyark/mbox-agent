@@ -156,4 +156,4 @@ class BoxPacketReceiver(asyncio.Protocol):
                 else:
                     self.logger.error("[EVT]<SQL> [CAUSE]<CRC error> [MSG]<{!r}>".format(packet))
             except Exception as e:
-                self.oogger.error("[EVT]<PKT> [CAUSE]<loop exception> [MSG]<{!s}>", str(e))
+                self.logger.error("[EVT]<PKT> [CAUSE]<loop exception> [MSG]<{!s}>", str(e))
