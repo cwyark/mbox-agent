@@ -1,6 +1,7 @@
 import os
 import logging
 import asyncio
+import json
 from asyncio import Queue
 from datetime import datetime
 from struct import Struct, pack, unpack
@@ -66,11 +67,13 @@ class BoxPacketReceiver(asyncio.Protocol):
                         )
                 if self.sql_queue.empty() is not True:
                     self.file_counter += 1
-                while self.sql_queue.empty() is not True:
-                    q = self.sql_queue.get_nowait()
-                    self.logger.info("[EVT]<SQL> [CAUSE]<get q> [MSG]<{}>".format(q))
+                    q_list = []
+                    while self.sql_queue.empty() is not True:
+                        q = self.sql_queue.get_nowait()
+                        q_list.append(q)
+                        self.logger.info("[EVT]<SQL> [CAUSE]<get q> [MSG]<{}>".format(q))
                     with open(os.path.join(DATA_FILE_PATH_PREFIX, file_name), "a+") as f:
-                        f.write(q)
+                        f.write(json.dumps(q_list))
                         self.logger.info("[EVT]<SQL> [CAUSE]<write to file> [MSG]<{}>".format(file_name))
 
     async def consumer(self):
@@ -81,77 +84,62 @@ class BoxPacketReceiver(asyncio.Protocol):
                 self.logger.info("[EVT]<PKT> [CAUSE]<got message> [MSG]<{!s}> [RAW]<{!r}>".format(packet, packet))
                 if packet.crc_validate() is True:
 
+                    q = dict()
+
                     if packet.command_code == 1002:
                         global zigbee_device_list_cache
                         if packet.zigbee_id not in zigbee_device_list_cache:
                             zigbee_device_list_cache[packet.zigbee_id] = 0
                         await self.response_packet(packet)
 
-                        SQL_STMT = DATA_LOG_FORMAT.format(\
-                                "Mbox-model-and-Version", \
-                                packet.device_id,\
-                                datetime.now().strftime("%Y-%m-%d %H:%M:%S"), \
-                                packet.command_code, \
-                                "'{!s}'".format(packet.payload[2:30].decode()), \
-                                packet.counter
-                            )
-                        self.sql_queue.put_nowait(SQL_STMT)
+                        q['MBoxId'] = packet.device_id
+                        q['RecordDate'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                        q['EventCode'] = packet.command_code
+                        q['Mbox-model-and-Version'] = "'{!s}'".format(packet.payload[2:30].decode())
+                        q['SequentialNumber'] = packet.counter
 
                     if packet.command_code >= 3301 and packet.command_code <= 3306:
                         index = packet.command_code - 3300
                         await self.response_packet(packet)
 
-                        SQL_STMT = DATA_LOG_FORMAT.format(\
-                                "RfId{}".format(index), \
-                                packet.device_id,\
-                                datetime.now().strftime("%Y-%m-%d %H:%M:%S"), \
-                                packet.command_code, \
-                                "{:x}".format(int.from_bytes(packet.payload[2:7], byteorder='big')), \
-                                packet.counter
-                            )
-                        self.sql_queue.put_nowait(SQL_STMT)
+                        q['MBoxId'] = packet.device_id
+                        q['RecordDate'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                        q['EventCode'] = packet.command_code
+                        q["RfId{}".format(index)] = "{:x}".format(int.from_bytes(packet.payload[2:7], byteorder='big'))
+                        q['SequentialNumber'] = packet.counter
+
 
                     if packet.command_code >= 3100 and packet.command_code <= 3105:
                         index = packet.command_code + 1 - 3100
                         await self.response_packet(packet)
 
-                        SQL_STMT = DATA_LOG_FORMAT.format(\
-                                "Button{}".format(index), \
-                                packet.device_id,\
-                                datetime.now().strftime("%Y-%m-%d %H:%M:%S"), \
-                                packet.command_code, \
-                                "{:d}".format(packet.payload[2]), \
-                                packet.counter
-                            )
-                        self.sql_queue.put_nowait(SQL_STMT)
+                        q['MBoxId'] = packet.device_id
+                        q['RecordDate'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                        q['EventCode'] = packet.command_code
+                        q["Button{}".format(index)] = "{:d}".format(packet.payload[2])
+                        q['SequentialNumber'] = packet.counter
 
                     if packet.command_code == 3106:
                         await self.response_packet(packet)
 
-                        SQL_STMT = DATA_LOG_FORMAT.format(\
-                                "Sensor1", \
-                                packet.device_id,\
-                                datetime.now().strftime("%Y-%m-%d %H:%M:%S"), \
-                                packet.command_code, \
-                                int.from_bytes(packet.payload[2:6], byteorder='little'), \
-                                packet.counter
-                            )
-                        self.sql_queue.put_nowait(SQL_STMT)
+                        q['MBoxId'] = packet.device_id
+                        q['RecordDate'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                        q['EventCode'] = packet.command_code
+                        q["Sensor1"] = int.from_bytes(packet.payload[2:6], byteorder='little')
+                        q['SequentialNumber'] = packet.counter
 
                     if packet.command_code == 3201:
                         await self.response_packet(packet)
 
-                        SQL_STMT = DATA_LOG_FORMAT.format(\
-                                "Counter1", \
-                                packet.device_id,\
-                                datetime.now().strftime("%Y-%m-%d %H:%M:%S"), \
-                                packet.command_code, \
-                                int.from_bytes(packet.payload[2:4], byteorder='little'), \
-                                packet.counter
-                            )
-                        self.sql_queue.put_nowait(SQL_STMT)
+                        q['MBoxId'] = packet.device_id
+                        q['RecordDate'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                        q['EventCode'] = packet.command_code
+                        q["Counter1"] = int.from_bytes(packet.payload[2:4], byteorder='little')
+                        q['SequentialNumber'] = packet.counter
 
-                    self.logger.info("[EVT]<SQL> [CAUSE]<none> [MSG]<{}>".format(SQL_STMT))
+                    self.sql_queue.put_nowait(q)
+
+                    self.logger.info("[EVT]<SQL> [CAUSE]<none> [MSG]<{}>".format(q))
 
                 else:
                     self.logger.error("[EVT]<SQL> [CAUSE]<CRC error> [MSG]<{!r}>".format(packet))
