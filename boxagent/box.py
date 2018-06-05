@@ -11,7 +11,7 @@ from .packet import RequestPacket, ResponsePacket
 SERIAL_RECV_TIMEOUT = 1.5 # seconds
 
 DATA_FILE_PATH_PREFIX = "/home/pi/Desktop/BoxData"
-DATA_LOG_FORMAT = "INSERT INTO InputsTableRaspberry (MBoxId,RecordDate,EventCode,{},SequentialNumber) VALUE ('{:x}', '{}', {}, {}, {})\n"
+DATA_LOG_FORMAT = "INSERT INTO InputsTableRaspberry (MBoxId,RecordDate,EventCode,{},SequentialNumber) VALUES ('{:x}', '{}', {}, {}, {})\n"
 
 zigbee_device_list_cache = dict()
 
