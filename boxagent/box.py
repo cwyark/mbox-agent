@@ -34,7 +34,7 @@ class BoxPacketReceiver(asyncio.Protocol):
         if b'\x55' in data and b'\x0d' in self.buffer:
             if self.buffer[0] in b'\xaa' and self.buffer[1] in b'\xd1':
                 # Need to alloc a new object to put in the queue
-                if b'\xaa\xd1\x80\x03\x11\x55' in self.buffer:
+                if b'\xaa\xd1\x80\x03\x11\x55' in self.buffer or b'\xaa\xd1\x80\x05\x11\x55' in self.buffer:
                     # A wrokaround because some times module send out aa d1 80 03 11 55 
                     self.buffer = self.buffer[6:]
                 self.queue.put_nowait(bytearray(self.buffer))
