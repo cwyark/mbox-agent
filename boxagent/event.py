@@ -61,7 +61,7 @@ async def internet_connection_checker(transport, nic_name):
                             _int_to_bcd(now.second), \
                             1)
                     packet = ResponsePacket.builder(zigbee_id = zigbee_device, counter = counter, payload = payload)
-                    logger.info("[EVT]<PKTOUT> [CAUSE]<{} status changed> [MSG]<{!s}> [RAW]<{!r}>".format(nic_name, packet, packet))
+                    logger.info("[EVT]<PKT> [CAUSE]<{} status changed> [MSG]<{!s}> [RAW]<{!r}>".format(nic_name, packet, packet))
                     transport.write(packet.frame)
                     zigbee_device_list_cache[zigbee_device] += 1
                 logger.info("[EVT]<NIC> [CAUSE]<none> [MSG]<{} connection {}>".format(nic_name), _current_conn)
