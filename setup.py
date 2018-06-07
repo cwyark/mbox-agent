@@ -20,6 +20,7 @@ setup(
     install_requires = ['uvloop',
         'pyserial',
         'netifaces',
+        'python-daemon',
         'click'],
     classifiers = [
 		'Development Status :: 4 - Beta',
