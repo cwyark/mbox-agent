@@ -26,8 +26,8 @@ def cli():
 @click.option('--baudrate', default=115200, type=int, help='serial device baudrate')
 @click.option('--pidfile', default=PID_FILE_PATH, help='pidfile path')
 @click.option('--watch-nic', default="eth0", help="watch NIC list")
-@click.option('--daemon', default=False, type=bool, help="daemonize")
-def server(device, baudrate, pidfile, watch_nic, daemon):
+@click.option('--daemonize', default=False, type=bool, help="daemonize")
+def server(device, baudrate, pidfile, watch_nic, daemonize):
 
     def signal_handler(sig, frame):
         os.unlink(pidfile)
@@ -52,7 +52,7 @@ def server(device, baudrate, pidfile, watch_nic, daemon):
     signal.signal(signal.SIGTERM, signal_handler)
     signal.signal(signal.SIGINT, signal_handler)
 
-    if daemon is True:
+    if daemonize is True:
         with daemon.DaemonContext():
             loop_runner(logger, device, baudrate, pidfile, watch_nic)
     else:
