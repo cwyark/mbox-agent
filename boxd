@@ -31,47 +31,45 @@ def server(device, baudrate, pidfile, watch_nic):
     def signal_handler(sig, frame):
         os.unlink(pidfile)
 
-    with daemon.DaemonContext():
+    logging.basicConfig(level=logging.DEBUG, 
+        format="%(name)-12s %(levelname)-8s %(message)s", 
+        handlers = [logging.handlers.SysLogHandler(address = '/dev/log')
+            ]
+        )
 
-        logging.basicConfig(level=logging.DEBUG, 
-            format="%(name)-12s %(levelname)-8s %(message)s", 
-            handlers = [logging.handlers.SysLogHandler(address = '/dev/log')
-                ]
-            )
+    logger = logging.getLogger(__name__)
 
-        logger = logging.getLogger(__name__)
+    if os.path.isfile(pidfile):
+        logger.info("[EVT]<daemon> [CAUSE]<none> [MSG]<{} is already running, exit>".format(pidfile))
+        sys.exit()
 
-        if os.path.isfile(pidfile):
-            logger.info("[EVT]<daemon> [CAUSE]<none> [MSG]<{} is already running, exit>".format(pidfile))
-            sys.exit()
+    logger.info("[EVT]<daemon> [CAUSE]<none> [MSG]<BoxAgent start>")
 
-        logger.info("[EVT]<daemon> [CAUSE]<none> [MSG]<BoxAgent start>")
+    open(pidfile, "w").write(str(os.getpid()))   
 
-        open(pidfile, "w").write(str(os.getpid()))   
+    signal.signal(signal.SIGTERM, signal_handler)
+    signal.signal(signal.SIGKILL, signal_handler)
+    signal.signal(signal.SIGINT, signal_handler)
 
-        signal.signal(signal.SIGTERM, signal_handler)
-        signal.signal(signal.SIGKILL, signal_handler)
-        signal.signal(signal.SIGINT, signal_handler)
+    try:
+        loop = asyncio.get_event_loop()
+        ser_coro = create_serial_connection(loop, BoxPacketReceiver, device, baudrate=baudrate, timeout=SERIAL_RECV_TIMEOUT)
+        ser_trans, _ = loop.run_until_complete(ser_coro)
+        
+        if watch_nic is not None:
+            watch_nic_list = watch_nic.split(',')
 
-        try:
-            loop = asyncio.get_event_loop()
-            ser_coro = create_serial_connection(loop, BoxPacketReceiver, device, baudrate=baudrate, timeout=SERIAL_RECV_TIMEOUT)
-            ser_trans, _ = loop.run_until_complete(ser_coro)
-            
-            if watch_nic is not None:
-                watch_nic_list = watch_nic.split(',')
+            tasks = [internet_connection_checker(ser_trans, nic) for nic in watch_nic_list]
 
-                tasks = [internet_connection_checker(ser_trans, nic) for nic in watch_nic_list]
+            loop.run_until_complete(asyncio.gather(*tasks))
 
-                loop.run_until_complete(asyncio.gather(*tasks))
-
-            loop.run_forever()
-        except Exception as e:
-            logger.info("[EVT]<daemon> [CAUSE]<none> [MSG]<Loop exception: {}>".format(str(e)))
-        finally:
-            logger.info("[EVT]<daemon> [CUASE]<none> [MSG]<BoxAgent end>")
-            loop.close()
-            os.unlink(pidfile)
+        loop.run_forever()
+    except Exception as e:
+        logger.info("[EVT]<daemon> [CAUSE]<none> [MSG]<Loop exception: {}>".format(str(e)))
+    finally:
+        logger.info("[EVT]<daemon> [CUASE]<none> [MSG]<BoxAgent end>")
+        loop.close()
+        os.unlink(pidfile)
 
 if __name__ == "__main__":
     cli()
