@@ -49,12 +49,14 @@ def server(device, baudrate, pidfile, watch_nic, daemon):
     open(pidfile, "w").write(str(os.getpid()))   
 
     signal.signal(signal.SIGTERM, signal_handler)
-    signal.signal(signal.SIGKILL, signal_handler)
     signal.signal(signal.SIGINT, signal_handler)
+    if daemon is True:
+        with daemon.DaemonContext():
+            loop_runner(logger, device, baudrate, pidfile, watch_nic)
+    else:
+        loop_runner(logger, device, baudrate, pidfile, watch_nic)
 
-    loop_runner(device, baudrate, pidfile, watch_nic, daemon)
-
-def loop_runner(device, baudrate, pidfile, watch_nic, daemon):
+def loop_runner(logger, device, baudrate, pidfile, watch_nic):
     try:
         loop = asyncio.get_event_loop()
         ser_coro = create_serial_connection(loop, BoxPacketReceiver, device, baudrate=baudrate, timeout=SERIAL_RECV_TIMEOUT)
