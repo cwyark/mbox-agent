@@ -31,6 +31,7 @@ def server(device, baudrate, pidfile, watch_nic, daemon):
 
     def signal_handler(sig, frame):
         os.unlink(pidfile)
+        exit()
 
     logging.basicConfig(level=logging.DEBUG, 
         format="%(name)-12s %(levelname)-8s %(message)s", 
@@ -50,6 +51,7 @@ def server(device, baudrate, pidfile, watch_nic, daemon):
 
     signal.signal(signal.SIGTERM, signal_handler)
     signal.signal(signal.SIGINT, signal_handler)
+
     if daemon is True:
         with daemon.DaemonContext():
             loop_runner(logger, device, baudrate, pidfile, watch_nic)
