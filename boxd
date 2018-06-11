@@ -26,7 +26,8 @@ def cli():
 @click.option('--baudrate', default=115200, type=int, help='serial device baudrate')
 @click.option('--pidfile', default=PID_FILE_PATH, help='pidfile path')
 @click.option('--watch-nic', default="eth0", help="watch NIC list")
-def server(device, baudrate, pidfile, watch_nic):
+@click.option('--daemon', default=False, type=bool, help="daemonize")
+def server(*args, **kwargs):
 
     def signal_handler(sig, frame):
         os.unlink(pidfile)
@@ -51,6 +52,9 @@ def server(device, baudrate, pidfile, watch_nic):
     signal.signal(signal.SIGKILL, signal_handler)
     signal.signal(signal.SIGINT, signal_handler)
 
+    loop_runner(*args, **kwargs)
+
+def loop_runner(*args, **kwargs):
     try:
         loop = asyncio.get_event_loop()
         ser_coro = create_serial_connection(loop, BoxPacketReceiver, device, baudrate=baudrate, timeout=SERIAL_RECV_TIMEOUT)
