@@ -58,7 +58,7 @@ class RequestPacket(BasePacket):
         # Fill up payload
         buffer[11:11] = payload
         # Fill up CRC
-        buffer[-4:-2] = crc(buffer[4:-4]).to_bytes(2, byteorder='little')
+        buffer[-4:-2] = crc(buffer[6:-4]).to_bytes(2, byteorder='little')
         return cls(buffer)
 
     def unpack(self):
@@ -96,7 +96,7 @@ class ResponsePacket(BasePacket):
         # Fill up payload
         buffer[11:11] = payload
         # Fill up CRC
-        buffer[-4:-2] = crc(buffer[4:-4]).to_bytes(2, byteorder='little')
+        buffer[-4:-2] = crc(buffer[6:-4]).to_bytes(2, byteorder='little')
         return cls(buffer)
 
     def unpack(self):
