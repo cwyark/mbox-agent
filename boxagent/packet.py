@@ -52,7 +52,7 @@ class RequestPacket(BasePacket):
 
     @classmethod
     def builder(cls, device_id, counter, payload=b'\x00\x00'):
-        total_bytes = (1 + 4 + 4 + len(payload)) & 0xFF
+        total_bytes = (1 + 4 + 4 + len(payload) + 2) & 0xFF
         buffer = bytearray(Struct("<BBLBLHBB").pack(0xAA, 0xD1, device_id, total_bytes, \
                 counter, 0x00, 0x0D, 0x55))
         # Fill up payload
@@ -90,7 +90,7 @@ class ResponsePacket(BasePacket):
         # A workaround
         device_id = int.from_bytes(device_id.to_bytes(4, byteorder='little'), byteorder='big')
 
-        total_bytes = (1 + 4 + len(payload)) & 0xFF
+        total_bytes = (1 + 4 + len(payload) + 2) & 0xFF
         buffer = bytearray(Struct("<BBLBLHBB").pack(0xAA, 0xD1, device_id, total_bytes, \
                     counter, 0x00, 0x0D, 0x55))
         # Fill up payload
