@@ -19,8 +19,7 @@ class BasePacket:
 
     def __str__(self):
         return "BasePacket DeviceID:0x{device_id:08x} TotalBytes:{total_bytes} Counter:{counter} Payload({payload}) CRC:0x{crc:04x}".format(device_id=self.device_id, \
-                total_bytes=self.total_bytes, device_id=self.device_id, counter=self.counter, \
-                payload=self.format_bytearray(self.payload), crc=self.crc)
+                total_bytes=self.total_bytes, counter=self.counter, payload=self.format_bytearray(self.payload), crc=self.crc)
 
     def unpack(self):
         payload = self.frame[11:-4]
