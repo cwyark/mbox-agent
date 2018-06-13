@@ -2,7 +2,7 @@ import logging
 import asyncio 
 import netifaces as ni
 from .packet  import ResponsePacket
-from .box import zigbee_device_list_cache
+from .box import device_list_cache
 from datetime import datetime
 from struct import Struct, pack, unpack
 
@@ -46,11 +46,11 @@ async def internet_connection_checker(transport, nic_name):
     logger.info("[EVT]<NIC> [CAUSE]<{}> [MSG]<connection {}>".format(nic_name, _prev_conn))
     while True:
         _current_conn = check_nic_ip(nic_name)
-        global zigbee_device_list_cache
+        global device_list_cache
         if _current_conn != _prev_conn:
             now = datetime.now()
-            if len(zigbee_device_list_cache) != 0:
-                for zigbee_device, counter in zigbee_device_list_cache.items():
+            if len(device_list_cache) != 0:
+                for zigbee_device, counter in device_list_cache.items():
                     payload = Struct("<HBBBBBBBB").pack(1000, \
                             _int_to_bcd(now.year - 2000), \
                             _int_to_bcd(now.month), \
@@ -60,10 +60,10 @@ async def internet_connection_checker(transport, nic_name):
                             _int_to_bcd(now.minute), \
                             _int_to_bcd(now.second), \
                             1)
-                    packet = ResponsePacket.builder(zigbee_id = zigbee_device, counter = counter, payload = payload)
+                    packet = ResponsePacket.builder(device_id = zigbee_device, counter = counter, payload = payload)
                     logger.info("[EVT]<PKT> [CAUSE]<{} status changed> [MSG]<{!s}> [RAW]<{!r}>".format(nic_name, packet, packet))
                     transport.write(packet.frame)
-                    zigbee_device_list_cache[zigbee_device] += 1
+                    device_list_cache[zigbee_device] += 1
                 logger.info("[EVT]<NIC> [CAUSE]<none> [MSG]<{} connection {}>".format(nic_name), _current_conn)
         # Do not poll the network so fast! poll it every 100 ms
         await asyncio.sleep(2)

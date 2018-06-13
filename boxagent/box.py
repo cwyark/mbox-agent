@@ -14,7 +14,7 @@ SERIAL_RECV_TIMEOUT = 1.5 # seconds
 DATA_FILE_PATH_PREFIX = "/home/pi/Desktop/BoxData"
 DATA_LOG_FORMAT = "INSERT INTO InputsTableRaspberry (MBoxId,RecordDate,EventCode,{},SequentialNumber) VALUES ('{:x}', '{}', {}, {}, {})\n"
 
-zigbee_device_list_cache = dict()
+device_list_cache = dict()
 
 class BoxPacketReceiver(asyncio.Protocol):
     buffer = bytearray()
@@ -48,7 +48,7 @@ class BoxPacketReceiver(asyncio.Protocol):
 
     async def response_packet(self, packet):
         payload = Struct("<HHB").pack(1000, packet.command_code, 1)
-        response_packet = ResponsePacket.builder(zigbee_id = packet.zigbee_id, \
+        response_packet = ResponsePacket.builder(device_id = packet.device_id, \
                 counter = packet.counter, payload = payload)
         self.logger.info("[EVT]<PKT> [CAUSE]<reply message> [MSG]<{!s}> [RAW]<{!r}>".format(response_packet, response_packet))
 # Add 0.2 secs delay in case of the zigbee module would received faulty
@@ -87,9 +87,9 @@ class BoxPacketReceiver(asyncio.Protocol):
                     q = dict()
 
                     if packet.command_code == 1002:
-                        global zigbee_device_list_cache
-                        if packet.zigbee_id not in zigbee_device_list_cache:
-                            zigbee_device_list_cache[packet.zigbee_id] = 0
+                        global device_list_cache
+                        if packet.device_id not in device_list_cache:
+                            device_list_cache[packet.device_id] = 0
                         await self.response_packet(packet)
 
                         q['MBoxId'] = packet.device_id
