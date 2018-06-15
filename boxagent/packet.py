@@ -37,8 +37,7 @@ class BasePacket:
         data = self.frame[:11] + self.frame[-4:]
         try:
             self.header_1, self.header_2, self.device_id, self.total_bytes, \
-                    self.device_id, self.counter, self.crc, self.end_1, \
-                    self.end_2 = Struct("<BBLBLHBB").unpack(data)
+                    self.counter, self.crc, self.end_1, self.end_2 = Struct("<BBLBLHBB").unpack(data)
         except:
             self.logger.error("[EVT]<PKT> [CAUSE]<payload deserialize not work> [MSG]<none>")
         self.payload = payload
