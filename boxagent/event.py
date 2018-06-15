@@ -1,7 +1,7 @@
 import logging
 import asyncio 
 import netifaces as ni
-from .packet  import ResponsePacket
+from .packet  import BasePacket
 from .box import device_list_cache
 from datetime import datetime
 from struct import Struct, pack, unpack
@@ -60,7 +60,7 @@ async def internet_connection_checker(transport, nic_name):
                             _int_to_bcd(now.minute), \
                             _int_to_bcd(now.second), \
                             1)
-                    packet = ResponsePacket.builder(device_id = zigbee_device, counter = counter, payload = payload)
+                    packet = BasePacket.builder(device_id = zigbee_device, counter = counter, payload = payload)
                     logger.info("[EVT]<PKT> [CAUSE]<{} status changed> [MSG]<{!s}> [RAW]<{!r}>".format(nic_name, packet, packet))
                     transport.write(packet.frame)
                     device_list_cache[zigbee_device] += 1

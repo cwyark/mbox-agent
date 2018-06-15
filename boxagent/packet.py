@@ -21,6 +21,17 @@ class BasePacket:
         return "BasePacket DeviceID:0x{device_id:08x} TotalBytes:{total_bytes} Counter:{counter} Payload({payload}) CRC:0x{crc:04x}".format(device_id=self.device_id, \
                 total_bytes=self.total_bytes, counter=self.counter, payload=self.format_bytearray(self.payload), crc=self.crc)
 
+    @classmethod
+    def builder(cls, device_id, counter, payload=b'\x00\x00'):
+        total_bytes = (1 + 4 + 4 + len(payload) + 2) & 0xFF
+        buffer = bytearray(Struct("<BBLBLHBB").pack(0xAA, 0xD1, device_id, total_bytes, \
+                counter, 0x00, 0x0D, 0x55))
+        # Fill up payload
+        buffer[11:11] = payload
+        # Fill up CRC
+        buffer[-4:-2] = crc(buffer[6:-4]).to_bytes(2, byteorder='little')
+        return cls(buffer)
+
     def unpack(self):
         payload = self.frame[11:-4]
         data = self.frame[:11] + self.frame[-4:]
@@ -41,81 +52,3 @@ class BasePacket:
                 return False
         else:
             return True
-
-
-class RequestPacket(BasePacket):
-
-    def __str__(self):
-        return "RequestPacket DeviceID:0x{device_id:08x} TotalBytes:{total_bytes} Counter:{counter} Command:{command} Payload({payload}) CRC:0x{crc:04x}".format(device_id=self.device_id, \
-                total_bytes=self.total_bytes, counter=self.counter, \
-                command=self.command_code, payload=self.format_bytearray(self.payload), crc=self.crc)
-
-    @classmethod
-    def builder(cls, device_id, counter, payload=b'\x00\x00'):
-        total_bytes = (1 + 4 + 4 + len(payload) + 2) & 0xFF
-        buffer = bytearray(Struct("<BBLBLHBB").pack(0xAA, 0xD1, device_id, total_bytes, \
-                counter, 0x00, 0x0D, 0x55))
-        # Fill up payload
-        buffer[11:11] = payload
-        # Fill up CRC
-        buffer[-4:-2] = crc(buffer[6:-4]).to_bytes(2, byteorder='little')
-        return cls(buffer)
-
-    def unpack(self):
-        payload = self.frame[11:-4]
-        data = self.frame[:11] + self.frame[-4:]
-        try:
-            self.header_1, self.header_2, self.device_id, self.total_bytes, \
-                    self.counter, self.crc, self.end_1, \
-                    self.end_2 = Struct("<BBLBLHBB").unpack(data)
-            self.payload = payload
-            # a workaround
-            self.device_id = int.from_bytes(self.device_id.to_bytes(4, byteorder='little'), byteorder='big')
-        except:
-            self.logger.error("[EVT]<PKT> [CAUSE]<payload deserialize not work> [MSG]<none>")
-    
-    @property
-    def command_code(self):
-        return int.from_bytes(self.payload[0:2], byteorder='little')
-
-class ResponsePacket(BasePacket):
-
-    def __str__(self):
-        return "ResponsePacket DeviceID:0x{device_id:08x} TotalBytes:{total_bytes} Counter:{counter} Command:{command_code} ReplyCode:{reply_code} CRC:0x{crc:04x}".format(device_id=self.device_id, \
-                total_bytes=self.total_bytes, counter=self.counter, \
-                command_code=self.command_code, reply_code=self.reply_code, crc=self.crc)
-
-    @classmethod
-    def builder(cls, device_id, counter, payload=b'\x00\x00'):
-        # A workaround
-        device_id = int.from_bytes(device_id.to_bytes(4, byteorder='little'), byteorder='big')
-
-        total_bytes = (1 + 4 + len(payload) + 2) & 0xFF
-        buffer = bytearray(Struct("<BBLBLHBB").pack(0xAA, 0xD1, device_id, total_bytes, \
-                    counter, 0x00, 0x0D, 0x55))
-        # Fill up payload
-        buffer[11:11] = payload
-        # Fill up CRC
-        buffer[-4:-2] = crc(buffer[6:-4]).to_bytes(2, byteorder='little')
-        return cls(buffer)
-
-    def unpack(self):
-        payload = self.frame[11:-4]
-        data = self.frame[:11] + self.frame[-4:]
-        try:
-            self.header_1, self.header_2, self.device_id, self.total_bytes, \
-                    self.counter, self.crc, self.end_1, \
-                    self.end_2 = Struct("<BBLBLHBB").unpack(data)
-            self.payload = payload
-            # A workaround
-            self.device_id = int.from_bytes(self.device_id.to_bytes(4, byteorder='little'), byteorder='big')
-        except:
-            self.logger.error("[EVT]<PKT> [CAUSE]<payload deserialize not work> [MSG]<none>")
-
-    @property
-    def command_code(self):
-        return int.from_bytes(self.payload[0:2], byteorder='little')
-
-    @property
-    def reply_code(self):
-        return int.from_bytes(self.payload[2:4], byteorder='little')

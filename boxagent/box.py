@@ -6,7 +6,7 @@ from asyncio import Queue
 from datetime import datetime
 from struct import Struct, pack, unpack
 from .crc import crc
-from .packet import RequestPacket, ResponsePacket
+from .packet import BasePacket
 
 # Set up default timeout 
 SERIAL_RECV_TIMEOUT = 1.5 # seconds
@@ -80,7 +80,7 @@ class BoxPacketReceiver(asyncio.Protocol):
         while True:
             frame = await self.queue.get()
             try:
-                packet = RequestPacket(frame)
+                packet = BasePacket(frame)
                 self.logger.info("[EVT]<PKT> [CAUSE]<got message> [MSG]<{!s}> [RAW]<{!r}>".format(packet, packet))
                 if packet.crc_validate() is True:
 
