@@ -48,7 +48,7 @@ class BoxPacketReceiver(asyncio.Protocol):
 
     async def response_packet(self, packet):
         payload = Struct("<HHB").pack(1000, packet.command_code, 1)
-        response_packet = ResponsePacket.builder(device_id = packet.device_id, \
+        response_packet = BasePacket.builder(device_id = packet.device_id, \
                 counter = packet.counter, payload = payload)
         self.logger.info("[EVT]<PKT> [CAUSE]<reply message> [MSG]<{!s}> [RAW]<{!r}>".format(response_packet, response_packet))
 # Add 0.2 secs delay in case of the zigbee module would received faulty
