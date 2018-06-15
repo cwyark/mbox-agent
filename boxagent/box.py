@@ -96,7 +96,7 @@ class BoxPacketReceiver(asyncio.Protocol):
                         q['RecordDate'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                         q['EventCode'] = packet.command_code
                         q['Mbox-model-and-Version'] = "'{!s}'".format(packet.payload[6:30].decode())
-                        q['SequentialNumber'] = packet.counter
+                        q['SequentialNumber'] = packet.counter+1
 
                     if packet.command_code >= 3301 and packet.command_code <= 3306:
                         index = packet.command_code - 3300
