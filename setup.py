@@ -18,9 +18,9 @@ setup(
     ],
     scripts = ['boxd'],
     install_requires = ['uvloop',
+        'configobj',
         'pyserial',
         'netifaces',
-        'python-daemon',
         'click'],
     classifiers = [
 		'Development Status :: 4 - Beta',

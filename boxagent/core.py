@@ -2,21 +2,20 @@ import os
 import logging
 import asyncio
 import json
+import zmq
+import zmq.asyncio
 from asyncio import Queue
 from datetime import datetime
 from struct import Struct, pack, unpack
 from .crc import crc
 from .packet import BasePacket
 
-# Set up default timeout 
-SERIAL_RECV_TIMEOUT = 1.5 # seconds
-
 DATA_FILE_PATH_PREFIX = "/home/pi/Desktop/BoxData"
 DATA_LOG_FORMAT = "INSERT INTO InputsTableRaspberry (MBoxId,RecordDate,EventCode,{},SequentialNumber) VALUES ('{:x}', '{}', {}, {}, {})\n"
 
 device_list_cache = dict()
 
-class BoxPacketReceiver(asyncio.Protocol):
+class IngressTunnel(asyncio.Protocol):
     buffer = bytearray()
     def connection_made(self, transport):
         self.logger = logging.getLogger(__name__)
@@ -24,18 +23,15 @@ class BoxPacketReceiver(asyncio.Protocol):
         self.queue = Queue()
         self.sql_queue = Queue()
         self.transport.loop.create_task(self.consumer())
-        self.transport.loop.create_task(self.data_logger_task())
-        directory = os.path.dirname(DATA_FILE_PATH_PREFIX)
-        if not os.path.exists(DATA_FILE_PATH_PREFIX):
-            self.logger.debug("[EVT]<LOGGING> [CAUSE]<none> [MSG]<{} not found, create a new one>".format(DATA_FILE_PATH_PREFIX))
-            os.makedirs(DATA_FILE_PATH_PREFIX)
-
+        #self.transport.loop.create_task(self.data_logger_task())
+    
     def data_received(self, data):
         self.buffer += data
         if b'\x55' in data and b'\xd0' in self.buffer:
             if self.buffer[0] in b'\xaa' and self.buffer[1] in b'\xd1':
                 # Need to alloc a new object to put in the queue
-                if b'\xaa\xd1\x80\x03\x11\x55' in self.buffer or b'\xaa\xd1\x80\x05\x11\x55' in self.buffer:
+                if b'\xaa\xd1\x80\x03\x11\x55' in self.buffer or \
+                        b'\xaa\xd1\x80\x05\x11\x55' in self.buffer:
                     # A wrokaround because some times module send out aa d1 80 03 11 55 
                     self.buffer = self.buffer[6:]
                 self.queue.put_nowait(bytearray(self.buffer))
