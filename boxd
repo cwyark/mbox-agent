@@ -20,8 +20,7 @@ def cli():
 
 @cli.command()
 @click.option('--file', default='config.ini', help='config file path')
-@click.option('--watch-nic', help="watch NIC list")
-def server(file, watch_nic):
+def server(file):
 
     # Set up logger's config file
     fileConfig(file)
@@ -37,10 +36,10 @@ def server(file, watch_nic):
         exit()
 
     if os.path.isfile(pidfile):
-        logger.info("[EVT]<daemon> [CAUSE]<none> [MSG]<{} is already running, exit>".format(pidfile))
+        logger.info("<{} is already running, exit>".format(pidfile))
         sys.exit()
 
-    logger.info("[EVT]<daemon> [CAUSE]<none> [MSG]<BoxAgent start>")
+    logger.info("<BoxAgent start>")
 
     open(pidfile, "w").write(str(os.getpid()))   
 
@@ -70,9 +69,9 @@ def server(file, watch_nic):
 
         loop.run_forever()
     except Exception as e:
-        logger.info("[EVT]<daemon> [CAUSE]<none> [MSG]<Loop exception: {}>".format(str(e)))
+        logger.info("<Loop exception: {}>".format(str(e)))
     finally:
-        logger.info("[EVT]<daemon> [CUASE]<none> [MSG]<BoxAgent end>")
+        logger.info("<BoxAgent end>")
         loop.close()
         os.unlink(pidfile)
 

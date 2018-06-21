@@ -23,7 +23,6 @@ class IngressTunnel(asyncio.Protocol):
         self.queue = Queue()
         self.sql_queue = Queue()
         self.transport.loop.create_task(self.consumer())
-        #self.transport.loop.create_task(self.data_logger_task())
     
     def data_received(self, data):
         self.buffer += data
@@ -36,7 +35,7 @@ class IngressTunnel(asyncio.Protocol):
                     self.buffer = self.buffer[6:]
                 self.queue.put_nowait(bytearray(self.buffer))
             else:
-                self.logger.error("[EVT]<PKT> [CAUSE]<frame error> [MSG]<{}>".format(' '.join('{:02}'.format(x) for x in self.buffer)))
+                self.logger.error("<Frame error> <{}>".format(' '.join('{:02x}'.format(x) for x in self.buffer)))
             self.buffer.clear()
 
     def connection_lost(self, exc):
@@ -51,93 +50,15 @@ class IngressTunnel(asyncio.Protocol):
         await asyncio.sleep(0.2)
         self.transport.write(response_packet.frame)
 
-    async def data_logger_task(self):
-        self.file_counter = 0
-        while True:
-            now = datetime.now()
-            await asyncio.sleep(0.7)
-            if now.second % 10 == 0:
-                file_name = "Mbox {}-{}.txt".format( \
-                        now.strftime("%Y-%m-%d-%H-%M-%S"), \
-                        self.file_counter
-                        )
-                if self.sql_queue.empty() is not True:
-                    self.file_counter += 1
-                    q_list = []
-                    while self.sql_queue.empty() is not True:
-                        q = self.sql_queue.get_nowait()
-                        q_list.append(q)
-                        self.logger.info("[EVT]<SQL> [CAUSE]<get q> [MSG]<{}>".format(q))
-                    with open(os.path.join(DATA_FILE_PATH_PREFIX, file_name), "a+") as f:
-                        f.write(json.dumps(q_list))
-                        self.logger.info("[EVT]<SQL> [CAUSE]<write to file> [MSG]<{}>".format(file_name))
-
     async def consumer(self):
         while True:
             frame = await self.queue.get()
             try:
                 packet = BasePacket(frame)
-                self.logger.info("[EVT]<PKT> [CAUSE]<got message> [MSG]<{!s}> [RAW]<{!r}>".format(packet, packet))
+                self.logger.info("<got message> <{!s}> <{!r}>".format(packet, packet))
                 if packet.crc_validate() is True:
-
-                    q = dict()
-
-                    if packet.command_code == 1002:
-                        global device_list_cache
-                        if packet.device_id not in device_list_cache:
-                            device_list_cache[packet.device_id] = 0
-                        await self.response_packet(packet)
-
-                        q['MBoxId'] = packet.device_id
-                        q['RecordDate'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                        q['EventCode'] = packet.command_code
-                        q['Mbox-model-and-Version'] = "'{!s}'".format(packet.payload[6:30].decode())
-                        q['SequentialNumber'] = packet.counter+1
-
-                    if packet.command_code >= 3301 and packet.command_code <= 3306:
-                        index = packet.command_code - 3300
-                        await self.response_packet(packet)
-
-                        q['MBoxId'] = packet.device_id
-                        q['RecordDate'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                        q['EventCode'] = packet.command_code
-                        q["RfId{}".format(index)] = "{:x}".format(int.from_bytes(packet.payload[2:7], byteorder='big'))
-                        q['SequentialNumber'] = packet.counter
-
-
-                    if packet.command_code >= 3100 and packet.command_code <= 3105:
-                        index = packet.command_code + 1 - 3100
-                        await self.response_packet(packet)
-
-                        q['MBoxId'] = packet.device_id
-                        q['RecordDate'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                        q['EventCode'] = packet.command_code
-                        q["Button{}".format(index)] = "{:d}".format(packet.payload[2])
-                        q['SequentialNumber'] = packet.counter
-
-                    if packet.command_code == 3106:
-                        await self.response_packet(packet)
-
-                        q['MBoxId'] = packet.device_id
-                        q['RecordDate'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                        q['EventCode'] = packet.command_code
-                        q["Sensor1"] = int.from_bytes(packet.payload[2:6], byteorder='little')
-                        q['SequentialNumber'] = packet.counter
-
-                    if packet.command_code == 3201:
-                        await self.response_packet(packet)
-
-                        q['MBoxId'] = packet.device_id
-                        q['RecordDate'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                        q['EventCode'] = packet.command_code
-                        q["Counter1"] = int.from_bytes(packet.payload[2:4], byteorder='little')
-                        q['SequentialNumber'] = packet.counter
-
-                    self.sql_queue.put_nowait(q)
-
-                    self.logger.info("[EVT]<SQL> [CAUSE]<none> [MSG]<{}>".format(q))
-
+                    pass
                 else:
-                    self.logger.error("[EVT]<SQL> [CAUSE]<CRC error> [MSG]<{!r}>".format(packet))
+                    self.logger.error("<CRC error> <{!r}>".format(packet))
             except Exception as e:
-                self.logger.error("[EVT]<PKT> [CAUSE]<loop exception> [MSG]<{!s}>", str(e))
+                self.logger.error("<Frame error> <{}>".format(' '.join('{:02x}'.format(x) for x in frame)))

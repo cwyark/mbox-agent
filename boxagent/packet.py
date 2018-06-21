@@ -7,7 +7,7 @@ class BasePacket:
         self.frame = frame
         self.logger = logging.getLogger(__name__)
         if type(frame) != bytearray:
-            raise ValueError("BasePacket: frame type is not bytearray")
+            raise ValueError("<BasePacket: frame type is not bytearray>")
         self.unpack()
 
 
@@ -40,10 +40,11 @@ class BasePacket:
         payload = self.frame[11:-4]
         data = self.frame[:11] + self.frame[-4:]
         try:
-            self.header_1, self.header_2, self.device_id, self.total_bytes, \
-                    self.counter, self.crc, self.end_1, self.end_2 = Struct("<BBLBLHBB").unpack(data)
+            self.header_1, self.header_2, self.device_id, \
+                    self.total_bytes, self.counter, self.crc, \
+                    self.end_1, self.end_2 = Struct("<BBLBLHBB").unpack(data)
         except:
-            self.logger.error("[EVT]<PKT> [CAUSE]<payload deserialize not work> [MSG]<none>")
+            self.logger.error("<payload deserialize not work>")
         self.payload = payload
 
     def crc_validate(self):
