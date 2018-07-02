@@ -21,6 +21,7 @@ setup(
         'configobj',
         'pyserial',
         'netifaces',
+        'pyzmq',
         'click'],
     classifiers = [
 		'Development Status :: 4 - Beta',
@@ -28,5 +29,7 @@ setup(
 		'Natural Language :: English',
 		'Programming Language :: Python :: 3 :: Only',
 		'Programming Language :: Python :: 3.6',
-	]
+	],
+    setup_requires = ['pytest-runner'],
+    tests_require = ['pytest']
 )

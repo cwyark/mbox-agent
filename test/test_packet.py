@@ -18,7 +18,7 @@ def test_crc_validate(frame):
     except:
         assert 0
 
-    assert packet.crc_validate() == False
+    assert packet.crc_validate() == True
 
 def test_builder():
     # Should test builder, but classmethod not work 
