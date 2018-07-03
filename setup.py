@@ -13,9 +13,7 @@ setup(
     author = 'ChesterTseng',
     author_email = 'hello@wylinks.io',
     license = 'Apache 2.0',
-    packages = [
-        'boxagent'
-    ],
+    packages = find_packages(),
     scripts = ['boxd'],
     install_requires = ['uvloop',
         'configobj',

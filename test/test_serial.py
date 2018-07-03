@@ -4,7 +4,7 @@ import asyncio
 import uvloop
 import pty
 import serial
-from boxagent.serial_transport import SerialTransport
+from boxagent.serial_transport import SerialTransport, create_serial_connection
 from boxagent.core import IngressTunnel
 
 class TestProtocol(asyncio.Protocol):
@@ -13,7 +13,6 @@ class TestProtocol(asyncio.Protocol):
 
     def data_received(self, data):
         self.transport.write(data)
-        print("sdfd")
 
 @pytest.yield_fixture()
 def loop():
@@ -26,5 +25,4 @@ def loop():
 async def test_serial_transport(loop):
     master, slave = pty.openpty()
     ser = serial.Serial(os.ttyname(slave))
-    transport = SerialTransport(loop, TestProtocol, ser)
     os.write(master, b'1234')

@@ -21,7 +21,6 @@ class IngressTunnel(asyncio.Protocol):
         self.logger = logging.getLogger(__name__)
         self.transport = transport
         self.queue = Queue()
-        self.sql_queue = Queue()
         self.transport.loop.create_task(self.consumer())
     
     def data_received(self, data):
