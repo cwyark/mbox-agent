@@ -88,8 +88,9 @@ class BoxPacketReceiver(asyncio.Protocol):
 
                     if packet.command_code == 1002:
                         global device_list_cache
-                        if packet.device_id not in device_list_cache:
-                            device_list_cache[packet.device_id] = 0
+                        device_id = str(packet.device_id)
+                        if device_id not in device_list_cache:
+                            device_list_cache[device_id] = 0
                         await self.response_packet(packet)
 
                         q['MBoxId'] = packet.device_id
