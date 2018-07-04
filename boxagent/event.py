@@ -51,7 +51,7 @@ async def internet_connection_checker(transport, nic_name):
             now = datetime.now()
             if len(device_list_cache) != 0:
                 for device_id, counter in device_list_cache.items():
-                    payload = Struct("<HBBBBBBBB").pack(1000, \
+                    payload = Struct("<HBBBBBBBB").pack(1001, \
                             _int_to_bcd(now.year - 2000), \
                             _int_to_bcd(now.month), \
                             _int_to_bcd(now.day), \
