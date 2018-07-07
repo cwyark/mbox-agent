@@ -13,3 +13,8 @@ $> python setup.py test --addopts='--cov=boxagent'
 ```bash
 $> python setup.py sdist --format=gztar
 ```
+
+## do not capture when test
+```bash
+$> python setup.py test --addopts "--capture=no"
+```

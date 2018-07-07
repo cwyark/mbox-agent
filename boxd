@@ -7,10 +7,11 @@ import asyncio
 import uvloop
 import click
 import signal
+import serial
 from configobj import ConfigObj
-from boxagent.core import IngressTunnel
+from boxagent.core import IngressTunnel, PacketCosumer
 from boxagent.event import internet_connection_checker
-from boxagent.serial_transport import SerialTransport, create_serial_connection
+from boxagent.serial_transport import SerialTransport
 
 asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 
@@ -21,16 +22,13 @@ def cli():
 @cli.command()
 @click.option('--file', default='config.ini', help='config file path')
 def server(file):
-
     # Set up logger's config file
-    fileConfig(file)
-
+    fileConfig(file, disable_existing_loggers=False)
+    # For normal config
     config = ConfigObj(file)
-
     logger = logging.getLogger(__name__)
-
     pidfile = config['default']['pidfile']
-    
+
     def signal_handler(sig, frame):
         os.unlink(pidfile)
         exit()
@@ -40,25 +38,27 @@ def server(file):
         sys.exit()
 
     logger.info("<BoxAgent start>")
-
     open(pidfile, "w").write(str(os.getpid()))   
-
     signal.signal(signal.SIGTERM, signal_handler)
-
     try:
         loop = asyncio.get_event_loop()
-
-        inputs = config['input']
-        
         serial_coros = list()
+        queues = (asyncio.Queue(), asyncio.Queue())
+
+        async def create_serial_connection(loop, protocol_factory, serial_port):
+            protocol = protocol_factory(queues)
+            transport = SerialTransport(loop, protocol, serial_port)
+            return (transport, protocol)
 
         for key, item in config['input'].items():
             if item.get('type') == 'serial':
-                serial_coros.append(create_serial_connection(loop, IngressTunnel, \
-                        item.get('name'), baudrate=item.get('baudrate'), \
-                        timeout=float(item.get('rx_timeout'))))
+                ser = serial.Serial(item.get('name'), baudrate=item.get('baudrate'), \
+                        timeout=float(item.get('rx_timeout')))
+                coro = create_serial_connection(loop, IngressTunnel, ser)
+                serial_coros.append(coro)
 
         loop.run_until_complete(asyncio.gather(*serial_coros))
+        loop.create_task(PacketCosumer(queues).run())
         
        #if watch_nic is not None:
        #    watch_nic_list = watch_nic.split(',')
