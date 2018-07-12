@@ -49,10 +49,12 @@ class IngressTunnel(asyncio.Protocol):
             self.transport.write(frame)
 
 class PacketCosumer:
-    def __init__(self, queues, packet_queue):
+    def __init__(self, loop, queues, packet_queue):
         self.rx_queue, self.tx_queue = queues
         self.packet_queue = packet_queue
+        self.loop = loop
         self.logger = logging.getLogger(__name__)
+        self.if_1002_received = False
     
     async def run(self):
         while True:
@@ -74,20 +76,31 @@ class PacketCosumer:
         self.logger.debug("<reply frame> <{!r}>".format(response_packet))
         self.tx_queue.put_nowait(response_packet.frame)
 
+    def heartbeat(self):
+        self.logger.debug('heart beat')
+        packet = BasePacket.builder(0, 0, b'1234')
+        self.tx_queue.put_nowait(packet)
+        self.loop.call_later(0.3, self.heartbeat)
+
     def dispatcher(self, packet):
         command_code = packet.command_code
 
         q = dict()
+
         q['MBoxId'] = packet.device_id
         q['RecordDate'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         q['EventCode'] = packet.command_code
         q['SequentialNumber'] = packet.counter+1
 
         if command_code == 1000:
-            return
+            self.logger.info('get 1000 command: {!s}'.format(packet))
+            self.logger.debug('get 1000 command: {!r}'.format(packet))
         elif command_code == 1002:
             self.response_packet(packet)
             q['Mbox-model-and-Version'] = "'{!s}'".format(packet.payload[6:30].decode())
+            if self.if_1002_received is False:
+                self.if_1002_received = True
+                self.loop.call_later(0.3, self.heartbeat)
         elif command_code >= 3301 and command_code <= 3306:
             index = packet.command_code - 3300
             self.response_packet(packet)
@@ -108,3 +121,4 @@ class PacketCosumer:
             return
         self.packet_queue.put_nowait(q)
         
+

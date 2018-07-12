@@ -2,8 +2,6 @@ import asyncio, json, os, logging
 
 from datetime import datetime
 
-DATA_LOG_FORMAT = "INSERT INTO InputsTableRaspberry (MBoxId,RecordDate,EventCode,{},SequentialNumber) VALUES ('{:x}', '{}', {}, {}, {})\n"
-
 class StorageRunner:
 
     def __init__(self, loop, packet_queue, config):

@@ -7,7 +7,7 @@ def read(relpath: str) -> str:
 
 setup(
     name = "BoxAgent",
-    version = read('version.txt').strip(),
+    version_format = '{tag}+{gitsha}',
     description = 'BoxAgent is asynchronous pacekt parser and executor',
     long_description = read('README.md'),
     author = 'ChesterTseng',
@@ -19,7 +19,6 @@ setup(
         'configobj',
         'pyserial',
         'netifaces',
-        'pyzmq',
         'click'],
     classifiers = [
 		'Development Status :: 4 - Beta',
@@ -28,6 +27,6 @@ setup(
 		'Programming Language :: Python :: 3 :: Only',
 		'Programming Language :: Python :: 3.6',
 	],
-    setup_requires = ['pytest-runner'],
+    setup_requires = ['pytest-runner', 'setuptools-git-version'],
     tests_require = ['pytest']
 )
