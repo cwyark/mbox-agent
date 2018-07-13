@@ -93,8 +93,9 @@ class PacketCosumer:
             return bcd >> 1
         self.logger.debug('heart beat')
         now = datetime.now()
-        payload = Struct("<HBBBBBBB").pack(1001, \
+        payload = Struct("<HBBBBBBBB").pack(1001, \
                 _int_to_bcd(now.year - 2000), \
+                _int_to_bcd(now.month), \
                 _int_to_bcd(now.day), \
                 _int_to_bcd(now.weekday() + 1), \
                 _int_to_bcd(now.hour), \
