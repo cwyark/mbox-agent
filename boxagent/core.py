@@ -54,6 +54,8 @@ class PacketCosumer:
         self.packet_queue = packet_queue
         self.loop = loop
         self.logger = logging.getLogger(__name__)
+        self.device_list = list()
+        self.heartbeat_counter = 0
         self.if_1002_received = False
     
     async def run(self):
@@ -77,9 +79,32 @@ class PacketCosumer:
         self.tx_queue.put_nowait(response_packet.frame)
 
     def heartbeat(self):
+        def _int_to_bcd(n):
+            """
+                Encode a one or two digits number to the BCD.
+            """
+            bcd = 0
+            for i in (n // 10, n % 10):
+                for p in (8, 4, 2, 1):
+                    if i >= p:
+                        bcd += 1
+                        i -= p
+                    bcd <<= 1
+            return bcd >> 1
         self.logger.debug('heart beat')
-        packet = BasePacket.builder(0, 0, b'1234')
-        self.tx_queue.put_nowait(packet)
+        now = datetime.now()
+        payload = Struct("<HBBBBBBB").pack(1001, \
+                _int_to_bcd(now.year - 2000), \
+                _int_to_bcd(now.day), \
+                _int_to_bcd(now.weekday() + 1), \
+                _int_to_bcd(now.hour), \
+                _int_to_bcd(now.minute), \
+                _int_to_bcd(now.second), \
+                1)
+        for device_id in self.device_list:
+            packet = BasePacket.builder(device_id, self.heartbeat_counter, payload = payload)
+            self.tx_queue.put_nowait(packet.frame)
+        self.heartbeat_counter += 1
         self.loop.call_later(0.3, self.heartbeat)
 
     def dispatcher(self, packet):
@@ -101,6 +126,7 @@ class PacketCosumer:
             if self.if_1002_received is False:
                 self.if_1002_received = True
                 self.loop.call_later(0.3, self.heartbeat)
+            self.device_list.append(packet.device_id)
         elif command_code >= 3301 and command_code <= 3306:
             index = packet.command_code - 3300
             self.response_packet(packet)
