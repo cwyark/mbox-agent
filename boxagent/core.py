@@ -49,13 +49,14 @@ class IngressTunnel(asyncio.Protocol):
             self.transport.write(frame)
 
 class PacketCosumer:
-    def __init__(self, loop, queues, packet_queue):
+    def __init__(self, loop, queues, packet_queue, config):
         self.rx_queue, self.tx_queue = queues
         self.packet_queue = packet_queue
         self.loop = loop
         self.logger = logging.getLogger(__name__)
         self.device_list = list()
         self.heartbeat_counter = 0
+        self.heartbeat_interval = int(config['default']['heartbeat'])
         self.if_1002_received = False
     
     async def run(self):
@@ -106,7 +107,7 @@ class PacketCosumer:
             packet = BasePacket.builder(device_id, self.heartbeat_counter, payload = payload)
             self.tx_queue.put_nowait(packet.frame)
         self.heartbeat_counter += 1
-        self.loop.call_later(0.3, self.heartbeat)
+        self.loop.call_later(self.heartbeat_interval, self.heartbeat)
 
     def dispatcher(self, packet):
         command_code = packet.command_code
@@ -126,7 +127,7 @@ class PacketCosumer:
             q['Mbox-model-and-Version'] = "'{!s}'".format(packet.payload[6:30].decode())
             if self.if_1002_received is False:
                 self.if_1002_received = True
-                self.loop.call_later(0.3, self.heartbeat)
+                self.loop.call_later(self.heartbeat_interval, self.heartbeat)
             self.device_list.append(packet.device_id)
         elif command_code >= 3301 and command_code <= 3306:
             index = packet.command_code - 3300
