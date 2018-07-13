@@ -15,6 +15,8 @@ setup(
     license = 'Apache 2.0',
     packages = find_packages(),
     scripts = ['boxd'],
+    data_files = [('/lib/systemd/system', ['configs/boxagent.service']), 
+        ('', ['config.ini'])],
     install_requires = ['uvloop',
         'configobj',
         'pyserial',
