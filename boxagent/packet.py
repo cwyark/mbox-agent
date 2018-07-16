@@ -37,6 +37,8 @@ class BasePacket:
         return cls(buffer)
 
     def response_packet(self, result = True):
+        # A workaround
+        self.device_id = int.from_bytes(self.device_id.to_bytes(4, byteorder='little'), byteorder='big')
         payload = Struct("<HHB").pack(1000, self.command_code, result)
         return BasePacket.builder(device_id = self.device_id, \
                 counter = self.counter, payload = payload)
