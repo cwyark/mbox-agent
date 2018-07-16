@@ -122,6 +122,12 @@ class PacketCosumer:
         if command_code == 1000:
             self.logger.info('get 1000 command: {!s}'.format(packet))
             self.logger.debug('get 1000 command: {!r}'.format(packet))
+            # Record 1001's response
+            _, response_code, result = Struct("<HHB").unpack(packet.payload)
+            if response_code == 1001:
+                q['Status'] = result
+                q['EventCode'] = 1001
+                self.packet_queue.put_nowait(q)
         elif command_code == 1002:
             self.response_packet(packet)
             q['Mbox-model-and-Version'] = "'{!s}'".format(packet.payload[6:30].decode())
@@ -129,24 +135,28 @@ class PacketCosumer:
                 self.if_1002_received = True
                 self.loop.call_later(self.heartbeat_interval, self.heartbeat)
             self.device_list.append(packet.device_id)
+            self.packet_queue.put_nowait(q)
         elif command_code >= 3301 and command_code <= 3306:
             index = packet.command_code - 3300
             self.response_packet(packet)
             q["RfId{}".format(index)] = "{:x}".format(int.from_bytes(packet.payload[2:7], \
                     byteorder='big'))
+            self.packet_queue.put_nowait(q)
         elif command_code >= 3100 and command_code <= 3105:
             index = packet.command_code + 1 - 3100
             self.response_packet(packet)
             q["Button{}".format(index)] = "{:d}".format(packet.payload[2])
+            self.packet_queue.put_nowait(q)
         elif command_code == 3106:
             self.response_packet(packet)
             q["Sensor1"] = int.from_bytes(packet.payload[2:6], byteorder='little')
+            self.packet_queue.put_nowait(q)
         elif command_code == 3201:
             self.response_packet(packet)
             q["Counter1"] = int.from_bytes(packet.payload[2:4], byteorder='little')
+            self.packet_queue.put_nowait(q)
         else:
             self.logger.error("<unknown packet> code: {}".format(command_code))
             return
-        self.packet_queue.put_nowait(q)
         
 

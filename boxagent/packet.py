@@ -48,6 +48,8 @@ class BasePacket:
             self.header_1, self.header_2, self.device_id, \
                     self.total_bytes, self.counter, self.crc, \
                     self.end_1, self.end_2 = Struct("<BBLBLHBB").unpack(data)
+            # A workaround
+            self.device_id = int.from_bytes(self.device_id.to_bytes(4, byteorder='little'), byteorder='big')
         except:
             self.logger.error("<payload deserialize not work>")
         self.payload = payload
