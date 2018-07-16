@@ -29,7 +29,7 @@ class StorageRunner:
                 while self.queue.empty() is not True:
                     q = self.queue.get_nowait()
                     q['MBoxId'] = "0x{:x}".format(q['MBoxId'])
-                    self.logger.debug(q)
+                    self.logger.info(q)
                     q_list.append(q)
                     with open(os.path.join(storage_path_prefix, file_name), 'a+') as f:
                         if storage_type == 'json':
@@ -39,7 +39,6 @@ class StorageRunner:
                                 attr = "({}, {}, {}, {}, {})".format(*stmt.keys())
                                 values = "('{:x}', '{}', '{}', '{}', '{}')".format(*stmt.values())
                                 sql_stmt = "INSERT INTO {} VALUES {}\n".format(attr, values)
-                                self.logger.debug(sql_stmt)
                                 f.write(sql_stmt)
                         else:
                             pass
