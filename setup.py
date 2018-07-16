@@ -7,20 +7,20 @@ def read(relpath: str) -> str:
 
 setup(
     name = "BoxAgent",
-    version = read('version.txt').strip(),
+    version_format = '{tag}+{gitsha}',
     description = 'BoxAgent is asynchronous pacekt parser and executor',
     long_description = read('README.md'),
     author = 'ChesterTseng',
     author_email = 'hello@wylinks.io',
     license = 'Apache 2.0',
-    packages = [
-        'boxagent'
-    ],
+    packages = find_packages(),
     scripts = ['boxd'],
+    data_files = [('/lib/systemd/system', ['configs/boxagent.service']), 
+        ('', ['config.ini'])],
     install_requires = ['uvloop',
+        'configobj',
         'pyserial',
         'netifaces',
-        'python-daemon',
         'click'],
     classifiers = [
 		'Development Status :: 4 - Beta',
@@ -28,5 +28,7 @@ setup(
 		'Natural Language :: English',
 		'Programming Language :: Python :: 3 :: Only',
 		'Programming Language :: Python :: 3.6',
-	]
+	],
+    setup_requires = ['pytest-runner', 'setuptools-git-version'],
+    tests_require = ['pytest']
 )

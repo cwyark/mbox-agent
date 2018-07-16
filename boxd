@@ -2,80 +2,78 @@
 
 import os, sys
 import logging
-import logging.handlers
+from logging.config import fileConfig
 import asyncio
 import uvloop
 import click
-import daemon
 import signal
-from boxagent.box import BoxPacketReceiver, SERIAL_RECV_TIMEOUT
+import serial
+from configobj import ConfigObj
+from boxagent.core import IngressTunnel, PacketCosumer
 from boxagent.event import internet_connection_checker
-from boxagent.serial_transport import SerialTransport, create_serial_connection
+from boxagent.serial_transport import SerialTransport
+from boxagent.storage import StorageRunner
 
 asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
-
-# Set up the logging system
-PID_FILE_PATH = "/tmp/box.pid"
 
 @click.group()
 def cli():
     pass
 
 @cli.command()
-@click.option('--device', default="/dev/ttyS0", help='serial device name')
-@click.option('--baudrate', default=115200, type=int, help='serial device baudrate')
-@click.option('--pidfile', default=PID_FILE_PATH, help='pidfile path')
-@click.option('--watch-nic', default="eth0", help="watch NIC list")
-@click.option('--daemonize', default=False, type=bool, help="daemonize")
-def server(device, baudrate, pidfile, watch_nic, daemonize):
+@click.option('--file', default='config.ini', help='config file path')
+def server(file):
+    # Set up logger's config file
+    fileConfig(file, disable_existing_loggers=False)
+    # For normal config
+    config = ConfigObj(file)
+    logger = logging.getLogger(__name__)
+    pidfile = config['default']['pidfile']
 
     def signal_handler(sig, frame):
         os.unlink(pidfile)
         exit()
 
-    logging.basicConfig(level=logging.DEBUG, 
-        format="%(name)-12s %(levelname)-8s %(message)s", 
-        handlers = [logging.handlers.SysLogHandler(address = '/dev/log')
-            ]
-        )
-
-    logger = logging.getLogger(__name__)
-
     if os.path.isfile(pidfile):
-        logger.info("[EVT]<daemon> [CAUSE]<none> [MSG]<{} is already running, exit>".format(pidfile))
+        logger.info("<{} is already running, exit>".format(pidfile))
         sys.exit()
 
-    logger.info("[EVT]<daemon> [CAUSE]<none> [MSG]<BoxAgent start>")
-
+    logger.info("<BoxAgent start>")
     open(pidfile, "w").write(str(os.getpid()))   
-
     signal.signal(signal.SIGTERM, signal_handler)
-    signal.signal(signal.SIGINT, signal_handler)
-
-    if daemonize is True:
-        with daemon.DaemonContext():
-            loop_runner(logger, device, baudrate, pidfile, watch_nic)
-    else:
-        loop_runner(logger, device, baudrate, pidfile, watch_nic)
-
-def loop_runner(logger, device, baudrate, pidfile, watch_nic):
     try:
         loop = asyncio.get_event_loop()
-        ser_coro = create_serial_connection(loop, BoxPacketReceiver, device, baudrate=baudrate, timeout=SERIAL_RECV_TIMEOUT)
-        ser_trans, _ = loop.run_until_complete(ser_coro)
-        
-        if watch_nic is not None:
-            watch_nic_list = watch_nic.split(',')
+        serial_coros = list()
+        frame_queues = (asyncio.Queue(), asyncio.Queue())
+        packet_queue = asyncio.Queue()
 
-            tasks = [internet_connection_checker(ser_trans, nic) for nic in watch_nic_list]
+        async def create_serial_connection(loop, protocol_factory, serial_port):
+            protocol = protocol_factory(frame_queues)
+            transport = SerialTransport(loop, protocol, serial_port)
+            return (transport, protocol)
 
-            loop.run_until_complete(asyncio.gather(*tasks))
+        for key, item in config['input'].items():
+            if item.get('type') == 'serial':
+                ser = serial.Serial(item.get('name'), baudrate=item.get('baudrate'), \
+                        timeout=float(item.get('rx_timeout')))
+                coro = create_serial_connection(loop, IngressTunnel, ser)
+                serial_coros.append(coro)
+
+        loop.run_until_complete(asyncio.gather(*serial_coros))
+        loop.create_task(PacketCosumer(loop, frame_queues, packet_queue, config).run())
+        loop.create_task(StorageRunner(loop, packet_queue, config).run())
+       #if watch_nic is not None:
+       #    watch_nic_list = watch_nic.split(',')
+
+       #    tasks = [internet_connection_checker(ser_trans, nic) for nic in watch_nic_list]
+
+       #    loop.run_until_complete(asyncio.gather(*tasks))
 
         loop.run_forever()
     except Exception as e:
-        logger.info("[EVT]<daemon> [CAUSE]<none> [MSG]<Loop exception: {}>".format(str(e)))
+        logger.info("<Loop exception: {}>".format(str(e)))
     finally:
-        logger.info("[EVT]<daemon> [CUASE]<none> [MSG]<BoxAgent end>")
+        logger.info("<BoxAgent end>")
         loop.close()
         os.unlink(pidfile)
 
