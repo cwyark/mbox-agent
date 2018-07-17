@@ -133,7 +133,7 @@ class PacketCosumer:
             q['Mbox-model-and-Version'] = "'{!s}'".format(packet.payload[6:30].decode())
             if self.if_1002_received is False:
                 self.if_1002_received = True
-                self.loop.call_later(self.heartbeat_interval, self.heartbeat)
+                self.loop.call_soon(self.heartbeat_interval)
             self.device_list.append(packet.device_id)
             self.packet_queue.put_nowait(q)
         elif command_code >= 3301 and command_code <= 3306:
