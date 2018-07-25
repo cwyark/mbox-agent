@@ -94,7 +94,7 @@ class PacketCosumer:
             return bcd >> 1
         self.logger.debug('heart beat')
         now = datetime.now()
-        payload = Struct("<HBBBBBBBB").pack(1001, \
+        payload = Struct("<HBBBBBBBB").pack(3800, \
                 _int_to_bcd(now.year - 2000), \
                 _int_to_bcd(now.month), \
                 _int_to_bcd(now.day), \
@@ -122,11 +122,11 @@ class PacketCosumer:
         if command_code == 1000:
             self.logger.info('get 1000 command: {!s}'.format(packet))
             self.logger.debug('get 1000 command: {!r}'.format(packet))
-            # Record 1001's response
+            # Record 3800's response
             _, response_code, result = Struct("<HHB").unpack(packet.payload)
-            if response_code == 1001:
+            if response_code == 3800:
                 q['Status'] = result
-                q['EventCode'] = 1001
+                q['EventCode'] = 3800
                 self.packet_queue.put_nowait(q)
         elif command_code == 1002:
             self.response_packet(packet)

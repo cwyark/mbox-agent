@@ -55,8 +55,8 @@ def exec_command(ser, command_code, times):
             packet = BasePacket.builder(0x12345678, i, payload = payload)
             logging.info("sending packet:  {!r}".format(packet))
             ser.write(packet.frame)
-    elif command_code == 1001:
-        payload = Struct("<HHB").pack(1000, 1001, 1)
+    elif command_code == 3800:
+        payload = Struct("<HHB").pack(1000, 3800, 1)
         packet = BasePacket.builder(0x12345678, 1, payload = payload)
         logging.info("sending packet: {!r}".format(packet))
         ser.write(packet.frame)
