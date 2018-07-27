@@ -18,7 +18,7 @@ class BasePacket:
         return ' '.join('{:02x}'.format(x) for x in buf)
 
     def __str__(self):
-        return "BasePacket DeviceID:0x{device_id:08x} TotalBytes:{total_bytes} Counter:{counter} Payload({payload}) CmdCode:{command_code} CRC:0x{crc:04x}".format(device_id=self.device_id, \
+        return "BasePacket DeviceID:{device_id:08x} TotalBytes:{total_bytes} Counter:{counter} Payload({payload}) CmdCode:{command_code} CRC:0x{crc:04x}".format(device_id=self.device_id, \
                 total_bytes=self.total_bytes, counter=self.counter, payload=BasePacket.format_bytearray(self.payload), command_code=self.command_code, crc=self.crc)
 
     @property

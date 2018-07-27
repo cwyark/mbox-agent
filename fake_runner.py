@@ -16,7 +16,6 @@ def main(device, times, command):
     # test 1002 command
     exec_command(ser, command, times)
 
-
 def exec_command(ser, command_code, times):
     if command_code == 1002:
         for i in range(times):

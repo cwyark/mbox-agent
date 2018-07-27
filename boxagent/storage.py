@@ -26,7 +26,7 @@ class StorageRunner:
                 q_list = list()
                 while self.queue.empty() is not True:
                     q = self.queue.get_nowait()
-                    q['MBoxId'] = "0x{:x}".format(q['MBoxId'])
+                    q['MBoxId'] = "{:x}".format(q['MBoxId'])
                     self.logger.info(q)
                     q_list.append(q)
                 if len(q_list) != 0:
