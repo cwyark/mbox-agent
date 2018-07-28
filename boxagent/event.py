@@ -2,7 +2,6 @@ import logging
 import asyncio 
 import netifaces as ni
 from .packet  import BasePacket
-from .core import device_list_cache
 from datetime import datetime
 from struct import Struct, pack, unpack
 

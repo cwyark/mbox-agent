@@ -8,10 +8,6 @@ from struct import Struct, pack, unpack
 from .crc import crc
 from .packet import BasePacket
 
-DATA_LOG_FORMAT = "INSERT INTO InputsTableRaspberry (MBoxId,RecordDate,EventCode,{},SequentialNumber) VALUES ('{:x}', '{}', {}, {}, {})\n"
-
-device_list_cache = dict()
-
 class IngressTunnel(asyncio.Protocol):
     def __init__(self, queues):
         self.rx_queue, self.tx_queue = queues
@@ -57,7 +53,11 @@ class PacketCosumer:
         self.device_list = list()
         self.heartbeat_counter = 0
         self.heartbeat_interval = int(config['default']['heartbeat'])
-        self.if_1002_received = False
+        device_list_config = config['default'].get('device_list')
+        if device_list_config is not None:
+            self.device_list = list(map(int, device_list_config))
+            self.logger.info("found pre-defined device list: {}".format(self.device_list))
+        self.loop.call_soon(self.heartbeat)
     
     async def run(self):
         while True:
@@ -110,6 +110,7 @@ class PacketCosumer:
                 1)
         for device_id in self.device_list:
             packet = BasePacket.builder(device_id, self.heartbeat_counter, payload = payload)
+            self.logger.info("Building heartbeat packet for device : {}".format(device_id))
             self.tx_queue.put_nowait(packet.frame)
         self.heartbeat_counter += 1
         self.loop.call_later(self.heartbeat_interval, self.heartbeat)
@@ -142,10 +143,8 @@ class PacketCosumer:
         elif command_code == 1002:
             self.response_packet(packet)
             q['Mbox-model-and-Version'] = "'{!s}'".format(packet.payload[6:30].decode())
-            if self.if_1002_received is False:
-                self.if_1002_received = True
-                self.loop.call_soon(self.heartbeat)
-            self.device_list.append(packet.device_id)
+            if packet.device_id not in self.device_list:
+                self.device_list.append(packet.device_id)
             self.packet_queue.put_nowait(q)
         elif command_code >= 3301 and command_code <= 3306:
             index = packet.command_code - 3300
