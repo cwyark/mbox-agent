@@ -141,7 +141,7 @@ class PacketCosumer:
                 q['EventCode'] = 3800
                 if self.heartbeat_timeout_task is not None:
                     if not self.heartbeat_timeout_task.cancelled():
-                        self.heartbeat_timeout_task.cancell()
+                        self.heartbeat_timeout_task.cancel()
                         self.heartbeat_timeout_task = None
                         self.logger.info("cancel the heartbeat timeout task")
                 self.packet_queue.put_nowait(q)
