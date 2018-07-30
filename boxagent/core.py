@@ -84,34 +84,45 @@ class PacketCosumer:
         self.logger.debug("<reply frame> <{!r}>".format(response_packet))
         self.tx_queue.put_nowait(response_packet.frame)
 
+    def _int_to_bcd(n):
+        """
+            Encode a one or two digits number to the BCD.
+        """
+        bcd = 0
+        for i in (n // 10, n % 10):
+            for p in (8, 4, 2, 1):
+                if i >= p:
+                    bcd += 1
+                    i -= p
+                bcd <<= 1
+        return bcd >> 1
+
     async def handle_heartbeat_timeout(self):
         self.logger.info("waiting for the heartbeat timeout")
         await asyncio.sleep(self.heartbeat_interval)
-        self.logger.info("heartbeat timeout")
+        self.logger.info("heartbeat timeout, log this")
+        for device_id in self.device_list:
+            q = dict()
+            q['MBoxId'] = device_id
+            q['RecordDate'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            q['EventCode'] = 3800
+            q['SequentialNumber'] = 0
+            q['Status']  = 2
+            self.packet_queue.put_nowait(q)
+
 
     def heartbeat(self):
-        def _int_to_bcd(n):
-            """
-                Encode a one or two digits number to the BCD.
-            """
-            bcd = 0
-            for i in (n // 10, n % 10):
-                for p in (8, 4, 2, 1):
-                    if i >= p:
-                        bcd += 1
-                        i -= p
-                    bcd <<= 1
-            return bcd >> 1
+        
         self.logger.debug('heart beat')
         now = datetime.now()
         payload = Struct("<HBBBBBBBB").pack(3800, \
-                _int_to_bcd(now.year - 2000), \
-                _int_to_bcd(now.month), \
-                _int_to_bcd(now.day), \
-                _int_to_bcd(now.weekday() + 1), \
-                _int_to_bcd(now.hour), \
-                _int_to_bcd(now.minute), \
-                _int_to_bcd(now.second), \
+                self._int_to_bcd(now.year - 2000), \
+                self._int_to_bcd(now.month), \
+                self._int_to_bcd(now.day), \
+                self._int_to_bcd(now.weekday() + 1), \
+                self._int_to_bcd(now.hour), \
+                self._int_to_bcd(now.minute), \
+                self._int_to_bcd(now.second), \
                 1)
         for device_id in self.device_list:
             packet = BasePacket.builder(device_id, self.heartbeat_counter, payload = payload)
