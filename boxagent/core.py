@@ -84,10 +84,10 @@ class PacketCosumer:
         self.logger.debug("<reply frame> <{!r}>".format(response_packet))
         self.tx_queue.put_nowait(response_packet.frame)
 
-    async def timeout_task(self):
-        self.logger.info("waiting for the timeout task")
+    async def handle_heartbeat_timeout(self):
+        self.logger.info("waiting for the heartbeat timeout")
         await asyncio.sleep(self.heartbeat_interval)
-        self.logger.info("task timeout")
+        self.logger.info("heartbeat timeout")
 
     def heartbeat(self):
         def _int_to_bcd(n):
@@ -119,7 +119,7 @@ class PacketCosumer:
             self.tx_queue.put_nowait(packet.frame)
         self.heartbeat_counter += 1
         self.loop.call_later(self.heartbeat_interval, self.heartbeat)
-        self.task = asyncio.ensure_future(self.timeout_task())
+        self.heartbeat_timeout_task = asyncio.ensure_future(self.handle_heartbeat_timeout())
 
     def dispatcher(self, packet):
         command_code = packet.command_code
@@ -139,11 +139,11 @@ class PacketCosumer:
             if response_code == 3800:
                 q['Status'] = result
                 q['EventCode'] = 3800
-                if self.timeout_task is not None:
-                    if not self.timeout_task.cancelled():
-                        self.timeout_task.cancell()
-                        self.timeout_task = None
-                        self.logger.info("cancel timeout task")
+                if self.heartbeat_timeout_task is not None:
+                    if not self.heartbeat_timeout_task.cancelled():
+                        self.heartbeat_timeout_task.cancell()
+                        self.heartbeat_timeout_task = None
+                        self.logger.info("cancel the heartbeat timeout task")
                 self.packet_queue.put_nowait(q)
         elif command_code == 1002:
             self.response_packet(packet)
