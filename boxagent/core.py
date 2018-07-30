@@ -55,7 +55,12 @@ class PacketCosumer:
         self.heartbeat_interval = int(config['default']['heartbeat'])
         device_list_config = config['default'].get('device_list')
         if device_list_config is not None:
-            self.device_list = list(map(int, device_list_config))
+            if type(device_list_config) is list:
+                self.device_list = list(map(int, device_list_config))
+            elif type(device_list_config) is str:
+                self.device_list.append(int(device_list_config))
+            else:
+                pass
             self.logger.info("found pre-defined device list: {}".format(self.device_list))
         self.loop.call_soon(self.heartbeat)
     
