@@ -72,11 +72,12 @@ class PacketCosumer:
                 self.logger.info("<got packet> <{!s}>".format(packet))
                 self.logger.debug("<got frame> <{!r}>".format(packet))
                 if packet.crc_validate() is True:
-                    self.dispatcher(packet)
+                    try:
+                        self.dispatcher(packet)
                 else:
                     self.logger.error("<CRC error> <{!r}>".format(packet))
             except Exception as e:
-                self.logger.error("<runner frame error> <{}>".format(BasePacket.format_bytearray(frame)))
+                self.logger.error("<runner frame error> {}: <{}>".format(str(e), BasePacket.format_bytearray(frame)))
 
     def response_packet(self, packet):
         response_packet = packet.response_packet()
