@@ -94,7 +94,8 @@ class PacketCosumer:
             q['RecordDate'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             q['EventCode'] = 3800
             q['SequentialNumber'] = 0
-            q['Status']  = 2
+            q['ConnectionStatus']  = 0x02
+            self.logger.info("putting timeout queue, {}".format(q))
             await self.packet_queue.put(q)
 
 
@@ -146,7 +147,7 @@ class PacketCosumer:
             # Record 3800's response
             _, response_code, result = Struct("<HHB").unpack(packet.payload)
             if response_code == 3800:
-                q['Status'] = result
+                q['ConnectionStatus'] = result
                 q['EventCode'] = 3800
                 if self.heartbeat_timeout_task is not None:
                     if not self.heartbeat_timeout_task.cancelled():
