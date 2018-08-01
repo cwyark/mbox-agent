@@ -94,7 +94,7 @@ class PacketCosumer:
             q['RecordDate'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             q['EventCode'] = 3800
             q['SequentialNumber'] = 0
-            q['ConnectionStatus']  = 0x02
+            q['ConnectionStatus'] = 0x02
             self.logger.info("putting timeout queue, {}".format(q))
             await self.packet_queue.put(q)
 
