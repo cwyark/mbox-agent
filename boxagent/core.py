@@ -145,6 +145,9 @@ class PacketCosumer:
         q['EventCode'] = packet.command_code
         q['SequentialNumber'] = packet.counter+1
 
+        if packet.device_id not in self.device_list:
+            self.device_list.append(packet.device_id)
+
         if command_code == 1000:
             self.logger.info('get 1000 command: {!s}'.format(packet))
             self.logger.debug('get 1000 command: {!r}'.format(packet))
@@ -162,8 +165,6 @@ class PacketCosumer:
         elif command_code == 1002:
             self.response_packet(packet)
             q['Mbox-model-and-Version'] = "'{!s}'".format(packet.payload[6:30].decode())
-            if packet.device_id not in self.device_list:
-                self.device_list.append(packet.device_id)
             self.packet_queue.put_nowait(q)
         elif command_code >= 3301 and command_code <= 3306:
             index = packet.command_code - 3300
