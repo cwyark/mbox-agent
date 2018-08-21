@@ -1,0 +1,14 @@
+[Unit]
+Description=Simplified simple zebra service
+After=syslog.target
+
+[Service]
+Type=simple
+User=pi
+Group=users
+ExecStart=/usr/bin/boxd server --file /etc/boxagent/config.ini
+StandardOutput=syslog
+StandardError=syslog
+
+[Install]
+WantedBy=multi-user.target
