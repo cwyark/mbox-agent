@@ -44,6 +44,7 @@ async def internet_connection_checker(nic_name):
     _prev_conn = check_nic_ip(nic_name)
     logger.info("start detecting network {} change event, initial status is {}".format(nic_name, _prev_conn))
     while True:
+        _current_conn = check_nic_ip(nic_name)
         if _prev_conn != _current_conn:
             logger.info("network interface {} changed, it change to {}".format(nic_name, _current_conn))
         await asyncio.sleep(2)
