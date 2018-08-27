@@ -42,27 +42,9 @@ async def internet_connection_checker(transport, nic_name):
 
     # First check the connection status
     _prev_conn = check_nic_ip(nic_name)
-    logger.info("[EVT]<NIC> [CAUSE]<{}> [MSG]<connection {}>".format(nic_name, _prev_conn))
+    logger.info("start detecting network {} change event, initial status is {}".format(nic_name, _prev_conn))
     while True:
-        _current_conn = check_nic_ip(nic_name)
-        global device_list_cache
-        if _current_conn != _prev_conn:
-            now = datetime.now()
-            if len(device_list_cache) != 0:
-                for device_id, counter in device_list_cache.items():
-                    payload = Struct("<HBBBBBBBB").pack(1001, \
-                            _int_to_bcd(now.year - 2000), \
-                            _int_to_bcd(now.month), \
-                            _int_to_bcd(now.day), \
-                            _int_to_bcd(now.weekday() + 1), \
-                            _int_to_bcd(now.hour), \
-                            _int_to_bcd(now.minute), \
-                            _int_to_bcd(now.second), \
-                            1)
-                    packet = BasePacket.builder(device_id = int(device_id), counter = counter, payload = payload)
-                    logger.info("[EVT]<PKT> [CAUSE]<{} status changed> [MSG]<{!s}> [RAW]<{!r}>".format(nic_name, packet, packet))
-                    transport.write(packet.frame)
-                    device_list_cache[device_id] += 1
-        # Do not poll the network so fast! poll it every 100 ms
+        if _prev_conn != _current_conn:
+            logger.info("network interface {} changed, it change to {}".format(nic_name, _current_conn))
         await asyncio.sleep(2)
         _prev_conn = _current_conn

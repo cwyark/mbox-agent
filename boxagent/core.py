@@ -96,7 +96,7 @@ class PacketCosumer:
             q = dict()
             q['MBoxId'] = device_id
             q['RecordDate'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            q['EventCode'] = 3800
+            q['EventCode'] = 1001
             q['SequentialNumber'] = 0
             q['ConnectionStatus'] = 0x02
             self.logger.info("putting timeout queue, {}".format(q))
@@ -118,7 +118,7 @@ class PacketCosumer:
             return bcd >> 1
         self.logger.debug('heart beat')
         now = datetime.now()
-        payload = Struct("<HBBBBBBBB").pack(3800, \
+        payload = Struct("<HBBBBBBBB").pack(1001, \
                 _int_to_bcd(now.year - 2000), \
                 _int_to_bcd(now.month), \
                 _int_to_bcd(now.day), \
@@ -151,11 +151,11 @@ class PacketCosumer:
         if command_code == 1000:
             self.logger.info('get 1000 command: {!s}'.format(packet))
             self.logger.debug('get 1000 command: {!r}'.format(packet))
-            # Record 3800's response
+            # Record 1001's response
             _, response_code, result = Struct("<HHB").unpack(packet.payload)
-            if response_code == 3800:
+            if response_code == 1001:
                 q['ConnectionStatus'] = result
-                q['EventCode'] = 3800
+                q['EventCode'] = 1001
                 if self.heartbeat_timeout_task is not None:
                     if not self.heartbeat_timeout_task.cancelled():
                         self.heartbeat_timeout_task.cancel()

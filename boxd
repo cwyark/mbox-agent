@@ -62,12 +62,17 @@ def server(file):
         loop.run_until_complete(asyncio.gather(*serial_coros))
         loop.create_task(PacketCosumer(loop, frame_queues, packet_queue, config).run())
         loop.create_task(StorageRunner(loop, packet_queue, config).run())
-       #if watch_nic is not None:
-       #    watch_nic_list = watch_nic.split(',')
 
-       #    tasks = [internet_connection_checker(ser_trans, nic) for nic in watch_nic_list]
+        watch_nic_list = config['internet'].get('watch')
 
-       #    loop.run_until_complete(asyncio.gather(*tasks))
+        if type(watch_nic_list) is str:
+            watch_nic_list = [watch_nic_list]
+        elif watch_nic_list is None:
+            watch_nic_list = []
+        else:
+            pass
+        tasks = [internet_connection_checker(ser_trans, nic) for nic in watch_nic_list]
+        loop.run_until_complete(asyncio.gather(*tasks))
 
         loop.run_forever()
     except Exception as e:
