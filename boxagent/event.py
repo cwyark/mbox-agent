@@ -19,7 +19,7 @@ def _int_to_bcd(n):
             bcd <<= 1
     return bcd >> 1
 
-async def internet_connection_checker(transport, nic_name):
+async def internet_connection_checker(nic_name):
     logger = logging.getLogger(__name__)
     UP = 1
     DOWN = 0
