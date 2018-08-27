@@ -71,7 +71,7 @@ def server(file):
             watch_nic_list = []
         else:
             pass
-        tasks = [internet_connection_checker(nic) for nic in watch_nic_list]
+        tasks = [internet_connection_checker(packet_queue, nic) for nic in watch_nic_list]
         loop.run_until_complete(asyncio.gather(*tasks))
 
         loop.run_forever()

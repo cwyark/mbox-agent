@@ -19,7 +19,7 @@ def _int_to_bcd(n):
             bcd <<= 1
     return bcd >> 1
 
-async def internet_connection_checker(nic_name):
+async def internet_connection_checker(storage_queue, nic_name):
     logger = logging.getLogger(__name__)
     UP = 1
     DOWN = 0
@@ -47,5 +47,13 @@ async def internet_connection_checker(nic_name):
         _current_conn = check_nic_ip(nic_name)
         if _prev_conn != _current_conn:
             logger.info("network interface {} changed, it change to {}".format(nic_name, _current_conn))
+            q = dict()
+            q['MBoxId'] = 0
+            q['RecordDate'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            q['EventCode'] = 3800
+            q['SequentialNumber'] = 0
+            q['NICName'] = nic_name
+            q['ConnectionStatus'] = _current_conn
+            await storage_queue.put(q)
         await asyncio.sleep(2)
         _prev_conn = _current_conn
