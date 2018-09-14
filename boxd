@@ -10,7 +10,7 @@ import signal
 import serial
 from configobj import ConfigObj
 from boxagent.core import IngressTunnel, PacketCosumer
-from boxagent.event import internet_connection_checker
+from boxagent.internet import internet_connection_checker
 from boxagent.serial_transport import SerialTransport
 from boxagent.storage import StorageRunner
 
