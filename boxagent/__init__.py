@@ -4,3 +4,4 @@ from . import core
 from . import internet
 from . import serial_transport
 from . import storage
+from . import pin

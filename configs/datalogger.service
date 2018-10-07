@@ -1,12 +1,12 @@
 [Unit]
-Description=Simplified simple zebra service
+Description=Datalogger is a data logger and recorder.
 After=syslog.target
 
 [Service]
 Type=simple
 User=pi
 Group=users
-ExecStart=/usr/local/bin/boxd server --file /etc/boxagent/config.ini
+ExecStart=/usr/local/bin/loggerd server --file /etc/datalogger/config.ini
 StandardOutput=syslog
 StandardError=syslog
 

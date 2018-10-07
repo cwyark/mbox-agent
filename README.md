@@ -1,6 +1,6 @@
-# BoxAgent 
+# DataLogger 
 
-Latest version is v1.8
+Latest version is v1.0
 
 BoxAgent is a bridge software which receive streaming data from serial ports, and serialize/deserialize the streaming data, then log the data into file system in both JSON/SQL format
 

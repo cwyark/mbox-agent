@@ -18,12 +18,7 @@ class BasePacket:
         return ' '.join('{:02x}'.format(x) for x in buf)
 
     def __str__(self):
-        return "BasePacket DeviceID:{device_id:08x} TotalBytes:{total_bytes} Counter:{counter} Payload({payload}) CmdCode:{command_code} CRC:0x{crc:04x}".format(device_id=self.device_id, \
-                total_bytes=self.total_bytes, counter=self.counter, payload=BasePacket.format_bytearray(self.payload), command_code=self.command_code, crc=self.crc)
-
-    @property
-    def command_code(self):
-        return int.from_bytes(self.payload[0:2], byteorder='little')
+        return "RFID EventCode:{event_code} Value:{value}".format(event_code=self.event_code, value=self.value)
 
     @classmethod
     def builder(cls, device_id, counter, payload=b'\x00\x00'):
@@ -38,27 +33,13 @@ class BasePacket:
         buffer[-4:-2] = crc(buffer[6:-4]).to_bytes(2, byteorder='little')
         return cls(buffer)
 
-    def response_packet(self, result = True):
-        payload = Struct("<HHB").pack(1000, self.command_code, result)
-        return BasePacket.builder(device_id = self.device_id, \
-                counter = self.counter, payload = payload)
-
     def unpack(self):
-        payload = self.frame[11:-4]
-        data = self.frame[:11] + self.frame[-4:]
+        payload = self.frame[4:-4]
+        data = self.frame[:4] + self.frame[-4:]
         try:
             self.header_1, self.header_2, self.device_id, \
                     self.total_bytes, self.counter, self.crc, \
-                    self.end_1, self.end_2 = Struct("<BBLBLHBB").unpack(data)
-            # A workaround
-            self.device_id = int.from_bytes(self.device_id.to_bytes(4, byteorder='little'), byteorder='big')
+                    self.end = Struct("<BBLBLHBB").unpack(data)
         except:
             self.logger.error("<payload deserialize not work>")
         self.payload = payload
-
-    def crc_validate(self):
-        if self.crc != crc(self.frame[6:-4]):
-            # For some cases, crc value might be as the same as D0 55
-            return True if self.crc == crc(self.frame[6:-2]) else False
-        else:
-            return True
