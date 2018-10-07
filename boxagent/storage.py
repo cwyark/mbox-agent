@@ -16,6 +16,10 @@ class StorageRunner:
         storage_path_prefix = self.config['database']['storage_path']
         interval = int(self.config['database']['interval'])
         storage_type = self.config['database']['type']
+        try:
+            mac_addr = netifaces.ifaddresses('eth0')[netifaces.AF_LINK][0].get('addr')
+        except:
+            mac_addr = "ff:ff:ff:ff:ff:ff"
         while True:
             now = datetime.now()
             await asyncio.sleep(0.7)
@@ -27,6 +31,7 @@ class StorageRunner:
                 q_list = list()
                 while self.queue.empty() is not True:
                     q = self.queue.get_nowait()
+                    q['MACid'] = mac_addr 
                     self.logger.info(q)
                     q_list.append(q)
                 if len(q_list) != 0:

@@ -1,7 +1,6 @@
 import logging
 import asyncio 
 import netifaces as ni
-import RPi.GPIO as GPIO
 from .packet  import BasePacket
 from datetime import datetime
 from struct import Struct, pack, unpack
@@ -73,6 +72,7 @@ async def device_connection_checker(storage_queue, nic_name):
         _current_conn = check_nic_ip(nic_name)
         if _prev_conn != _current_conn:
             logger.info("network interface {} changed, it change to {}".format(nic_name, _current_conn))
+            q = dict()
             await storage_queue.put(q)
         await asyncio.sleep(2)
         _prev_conn = _current_conn

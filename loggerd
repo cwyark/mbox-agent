@@ -13,6 +13,8 @@ from boxagent.core import IngressTunnel, PacketCosumer
 from boxagent.internet import device_connection_checker, ping_connection_checker
 from boxagent.serial_transport import SerialTransport
 from boxagent.storage import StorageRunner
+from boxagent.pin import *
+from boxagent.heartbeat import heartbeat
 
 asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 
@@ -23,6 +25,9 @@ def cli():
 @cli.command()
 @click.option('--file', default='config.ini', help='config file path')
 def server(file):
+    
+    led_on(POWER_LED)
+
     # Set up logger's config file
     fileConfig(file, disable_existing_loggers=False)
     # For normal config
@@ -61,7 +66,10 @@ def server(file):
 
         loop.run_until_complete(asyncio.gather(*serial_coros))
 
-        loop.create_task(ping_connection_checker(loop, packet_queue, 10))
+        internet_timeout = int(config['internet'].get('timeout'))
+        loop.create_task(ping_connection_checker(loop, packet_queue, internet_timeout))
+
+        loop.create_task(heartbeat(loop, packet_queue, 10))
         loop.create_task(PacketCosumer(loop, frame_queues, packet_queue, config).run())
         loop.create_task(StorageRunner(loop, packet_queue, config).run())
 

@@ -4,6 +4,7 @@ GPIO.setmode(GPIO.BCM)
 GPIO.setwarnings(False)
 
 INTERNET_LED = 19
+POWER_LED = 26
 
 def led_on(pin):
     GPIO.setup(pin, GPIO.OUT)
