@@ -6,8 +6,6 @@ from datetime import datetime
 from struct import Struct, pack, unpack
 from .pin import *
 
-GPIO.setmode(GPIO.BCM)
-
 async def ping(loop, target, dump=False):
     create =  asyncio.create_subprocess_exec('ping', '-c', '5', target,
                                           stdout=asyncio.subprocess.PIPE)

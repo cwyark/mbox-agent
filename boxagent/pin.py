@@ -30,3 +30,14 @@ def led_on(pin):
 def led_off(pin):
     GPIO.setup(pin, GPIO.OUT)
     GPIO.output(pin, GPIO.HIGH)
+
+def led_value(pin, value):
+    if value == 1:
+        led_on(pin)
+    else:
+        led_off(pin)
+
+def button_value(pin):
+    GPIO.setup(pin, GPIO.IN)
+    return GPIO.input(pin)
+    

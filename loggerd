@@ -15,6 +15,7 @@ from boxagent.serial_transport import SerialTransport
 from boxagent.storage import StorageRunner
 from boxagent.pin import *
 from boxagent.heartbeat import heartbeat
+from boxagent.button import button_detect
 
 asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 
@@ -70,6 +71,7 @@ def server(file):
         loop.create_task(ping_connection_checker(loop, packet_queue, internet_timeout))
 
         loop.create_task(heartbeat(loop, packet_queue, 10))
+        loop.create_task(button_detect(loop))
         loop.create_task(PacketCosumer(loop, frame_queues, packet_queue, config).run())
         loop.create_task(StorageRunner(loop, packet_queue, config).run())
 

@@ -6,3 +6,4 @@ from . import serial_transport
 from . import storage
 from . import pin
 from . import heartbeat
+from . import button
