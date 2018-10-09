@@ -16,6 +16,7 @@ from boxagent.storage import StorageRunner
 from boxagent.pin import *
 from boxagent.heartbeat import heartbeat
 from boxagent.button import button_detect
+from boxagent.counter import fast_counter_detect, direct_counter_detect
 
 asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 
@@ -51,7 +52,7 @@ def server(file):
         loop = asyncio.get_event_loop()
         serial_coros = list()
         frame_queues = (asyncio.Queue(), asyncio.Queue())
-        packet_queue = asyncio.Queue()
+        storage_queue = asyncio.Queue()
 
         async def create_serial_connection(loop, protocol_factory, serial_port):
             protocol = protocol_factory(frame_queues)
@@ -64,17 +65,20 @@ def server(file):
                         timeout=float(item.get('rx_timeout')))
                 coro = create_serial_connection(loop, IngressTunnel, ser)
                 serial_coros.append(coro)
-
         loop.run_until_complete(asyncio.gather(*serial_coros))
 
         internet_timeout = int(config['internet'].get('timeout'))
-        loop.create_task(ping_connection_checker(loop, packet_queue, internet_timeout))
+        loop.create_task(ping_connection_checker(loop, storage_queue, internet_timeout))
 
         heartbeat_interval = int(config['default'].get('heartbeat'))
-        loop.create_task(heartbeat(loop, packet_queue, heartbeat_interval))
-        loop.create_task(button_detect(loop, packet_queue))
-        loop.create_task(PacketCosumer(loop, frame_queues, packet_queue, config).run())
-        loop.create_task(StorageRunner(loop, packet_queue, config).run())
+        loop.create_task(heartbeat(loop, storage_queue, heartbeat_interval))
+
+        loop.create_task(fast_counter_detect(loop, storage_queue, 0.005)
+        loop.create_task(direct_counter_detect(loop, storage_queue, 0.01)
+
+        loop.create_task(button_detect(loop, storage_queue))
+        loop.create_task(PacketCosumer(loop, frame_queues, storage_queue, config).run())
+        loop.create_task(StorageRunner(loop, storage_queue, config).run())
 
         watch_nic_list = config['internet'].get('watch')
 

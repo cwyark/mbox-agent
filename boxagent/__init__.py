@@ -7,3 +7,4 @@ from . import storage
 from . import pin
 from . import heartbeat
 from . import button
+from . import counter

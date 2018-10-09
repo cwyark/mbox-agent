@@ -8,6 +8,9 @@ POWER_LED = 26
 FAST_COUNTER_LED = 5
 DIRECT_COUNTER_LED = 6
 
+FAST_COUNTER = 23
+DIRECT_COUNTER = 24
+
 
 LED1 = 18
 LED2 = 25
@@ -41,3 +44,7 @@ def button_value(pin):
     GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
     return GPIO.input(pin)
     
+
+def counter_value(pin):
+    GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+    return GPIO.input(pin)
