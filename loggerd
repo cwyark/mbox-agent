@@ -70,8 +70,9 @@ def server(file):
         internet_timeout = int(config['internet'].get('timeout'))
         loop.create_task(ping_connection_checker(loop, packet_queue, internet_timeout))
 
-        loop.create_task(heartbeat(loop, packet_queue, 10))
-        loop.create_task(button_detect(loop))
+        heartbeat_interval = int(config['default'].get('heartbeat'))
+        loop.create_task(heartbeat(loop, packet_queue, heartbeat_interval))
+        loop.create_task(button_detect(loop, packet_queue))
         loop.create_task(PacketCosumer(loop, frame_queues, packet_queue, config).run())
         loop.create_task(StorageRunner(loop, packet_queue, config).run())
 
