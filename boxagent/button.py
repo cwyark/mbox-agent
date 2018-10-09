@@ -8,7 +8,8 @@ async def button_detect (loop, storage_queue):
     logger = logging.getLogger(__name__)
     led_value_list = [0,0,0,0,0,0]
     led_pin_list = [LED1, LED2, LED3, LED4, LED5, LED6]
-    button_pin_value = [0,0,0,0,0,0]
+    button_cache = [0,0,0,0,0,0]
+    button_perment_value = [0,0,0,0,0,0]
     button_pin_list = [BUTTON1, BUTTON2, BUTTON3, BUTTON4, BUTTON5, BUTTON6]
     blinking_led = None
     for led in led_pin_list:
@@ -27,24 +28,17 @@ async def button_detect (loop, storage_queue):
             led_value(led, value)
 
         for button in button_pin_list:
+            _index = button_pin_list.index(button)
             _value = button_value(button)
-            _prev_value = button_pin_value[button_pin_list.index(button)]
-            button_pin_value[button_pin_list.index(button)] = _value
+            _prev_value = button_cache[_index]
+            button_cache[_index] = _value
             if _prev_value == 1 and _value == 0:
-                blinking_led = led_pin_list[button_pin_list.index(button)]
+                blinking_led = led_pin_list[_index]
+                button_perment_value[_index] ^= 1
                 q = dict()
-                q['EventCode'] = 3100 + button_pin_list.index(button)
+                q['EventCode'] = 3100 + _index
                 q['SequentialNumber'] = seq_number
-                q['Value'] = 0
-                logger.info("12413")
+                q['Value'] = button_perment_value[_index]
                 await storage_queue.put(q)
-            elif _prev_value == 0 and _value == 1:
-                q = dict()
-                q['EventCode'] = 3100 + button_pin_list.index(button)
-                q['SequentialNumber'] = seq_number
-                q['Value'] = 1
-                await storage_queue.put(q)
-            else:
-                pass
-        seq_number += 1
-        logger.info(button_pin_value)
+                seq_number += 1
+        logger.info(button_cache)
