@@ -6,7 +6,7 @@ def read(relpath: str) -> str:
         return f.read()
 
 setup(
-    name = "DataLogger",
+    name = "BoxAgent",
     version_format = '{tag}+{gitsha}',
     description = 'Data Logger is an asynchronous data collector and recorder.',
     long_description = read('README.md'),
