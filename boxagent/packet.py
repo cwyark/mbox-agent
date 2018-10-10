@@ -21,12 +21,20 @@ class BasePacket:
         return "RFID EventCode:{event_code} Value:{value}".format(event_code=self.event_code, value=self.value)
 
     def unpack(self):
-        payload = self.frame[5:-2]
+        payload = self.frame[1:-2]
         data = self.frame[:5] + self.frame[-2:]
+        # self.logger.info(BasePacket.format_bytearray(payload))
+        # self.logger.info(BasePacket.format_bytearray(data))
         try:
             self.header, self.event_code, self.end =  \
                     Struct("<LBH").unpack(data)
-            self.value = payload.decode('ascii')
+            self.value = payload.decode("utf-8")
+            if self.event_code == 0x35:
+                self.event_code = 3301
+            elif self.event_code == 0x36:
+                self.event_code = 3302
+            else:
+                pass
         except:
             self.logger.error("<frame deserialize not work>")
 

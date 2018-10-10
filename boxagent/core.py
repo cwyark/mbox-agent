@@ -22,7 +22,7 @@ class IngressTunnel(asyncio.Protocol):
         _header = b'\x02\x30\x43\x45'
         _end = b'\x0d\x0a\x03'
         self.buffer += data
-        if _end in data:
+        if _end in self.buffer:
             index_of_end = self.buffer.index(_end)
             if _header in self.buffer:
                 index_of_header = self.buffer.index(_header)
@@ -56,8 +56,6 @@ class PacketCosumer:
             frame = await self.rx_queue.get()
             try:
                 packet = BasePacket(frame)
-                if int(packet.value) == 0:
-                    continue
                 self.logger.info("<got packet> <{!s}>".format(packet))
                 q = dict()
                 q['EventCode'] = packet.event_code
