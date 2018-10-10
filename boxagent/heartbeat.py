@@ -1,5 +1,6 @@
 import logging 
 import asyncio
+from datetime import datetime
 from .pin import *
 
 async def heartbeat (loop, storage_queue, interval):
@@ -11,6 +12,7 @@ async def heartbeat (loop, storage_queue, interval):
         q = dict()
         q['EventCode'] = 3800
         q['SequentialNumber'] = seq_number
+        q['RecordDate'] = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')
 
         await storage_queue.put(q)
         await asyncio.sleep(interval)

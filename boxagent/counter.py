@@ -37,7 +37,7 @@ async def direct_counter_detect (loop, storage_queue, sampling_rate):
             q = dict()
             q['Eventcode'] = 3106
             q['SequentialNumber'] = _seq_num
-            q['RecordDate'] = datetime.utcnow.strftime('%Y-%m-%d %H:%M:%S.%f')
+            q['RecordDate'] = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')
             await queue.put(q)
             _seq_num += 1
         _prev = _value

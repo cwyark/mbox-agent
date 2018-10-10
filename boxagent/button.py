@@ -1,7 +1,7 @@
 from .pin import *
 import logging
+from datetime import datetime
 import asyncio
-
 
 async def button_detect (loop, storage_queue):
     seq_number = 0
@@ -40,6 +40,7 @@ async def button_detect (loop, storage_queue):
                 q = dict()
                 q['EventCode'] = 3100 + _index
                 q['SequentialNumber'] = seq_number
+                q['RecordDate'] = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')
                 q['Value'] = button_perment_value[_index]
                 await storage_queue.put(q)
                 seq_number += 1
