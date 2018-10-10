@@ -28,6 +28,7 @@ async def fast_counter_detect (loop, storage_queue, sampling_rate):
             q['RecordDate'] = now.strftime('%Y-%m-%d %H:%M:%S.%f')
             q['SequentialNumber'] = _seq_num
             q['Value'] = _counting
+            _counting = 0
             await queue.put(q)
             _seq_num += 1
             led_off(led)

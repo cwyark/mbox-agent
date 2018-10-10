@@ -52,6 +52,7 @@ class PacketCosumer:
         self.logger = logging.getLogger(__name__)
     
     async def run(self):
+        _seq_counter = 0
         while True:
             frame = await self.rx_queue.get()
             try:
@@ -61,6 +62,8 @@ class PacketCosumer:
                 q['EventCode'] = packet.event_code
                 q['RecordDate'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 q['Value'] = packet.value
+                q['SequentialNumber'] = _seq_num
+                _seq_num += 1
                 await self.storage_queue.put(q)
             except Exception as e:
                 self.logger.error("<runner frame error> {}: <{}>".format(str(e), BasePacket.format_bytearray(frame)))

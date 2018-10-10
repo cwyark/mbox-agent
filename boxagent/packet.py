@@ -21,7 +21,7 @@ class BasePacket:
         return "RFID EventCode:{event_code} Value:{value}".format(event_code=self.event_code, value=self.value)
 
     def unpack(self):
-        payload = self.frame[1:-2]
+        payload = self.frame[5:-2]
         data = self.frame[:5] + self.frame[-2:]
         # self.logger.info(BasePacket.format_bytearray(payload))
         # self.logger.info(BasePacket.format_bytearray(data))
