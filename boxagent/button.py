@@ -35,6 +35,8 @@ async def button_detect (loop, storage_queue):
             if _prev_value == 1 and _value == 0:
                 blinking_led = led_pin_list[_index]
                 button_perment_value[_index] ^= 1
+                if button_perment_value[_index] == 0:
+                    blinking_led = None
                 q = dict()
                 q['EventCode'] = 3100 + _index
                 q['SequentialNumber'] = seq_number
