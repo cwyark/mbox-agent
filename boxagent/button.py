@@ -41,4 +41,3 @@ async def button_detect (loop, storage_queue):
                 q['Value'] = button_perment_value[_index]
                 await storage_queue.put(q)
                 seq_number += 1
-        logger.info(button_cache)

@@ -45,9 +45,9 @@ class IngressTunnel(asyncio.Protocol):
             self.transport.write(frame)
 
 class PacketCosumer:
-    def __init__(self, loop, queues, packet_queue, config):
+    def __init__(self, loop, queues, storage_queue, config):
         self.rx_queue, self.tx_queue = queues
-        self.packet_queue = packet_queue
+        self.storage_queue = storage_queue
         self.loop = loop
         self.logger = logging.getLogger(__name__)
     
@@ -56,10 +56,13 @@ class PacketCosumer:
             frame = await self.rx_queue.get()
             try:
                 packet = BasePacket(frame)
+                if int(packet.value) == 0:
+                    continue
                 self.logger.info("<got packet> <{!s}>".format(packet))
                 q = dict()
                 q['EventCode'] = packet.event_code
-                q['Value'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                self.packet_queue.pyt_nowait(q)
+                q['RecordDate'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                q['Value'] = packet.value
+                await self.storage_queue.put(q)
             except Exception as e:
                 self.logger.error("<runner frame error> {}: <{}>".format(str(e), BasePacket.format_bytearray(frame)))
