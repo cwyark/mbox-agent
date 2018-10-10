@@ -3,7 +3,14 @@ import logging
 from datetime import datetime
 import asyncio
 
+blinking_led = None
+
+def turn_blinking_led():
+    global blinking_led
+    blinking_led = None
+
 async def button_detect (loop, storage_queue):
+    global blinking_led
     seq_number = 0
     logger = logging.getLogger(__name__)
     led_cache = [0,0,0,0,0,0]

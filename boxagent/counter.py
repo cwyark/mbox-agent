@@ -2,6 +2,7 @@ import logging
 import asyncio
 from datetime import datetime
 from .pin import *
+from .button import turn_blinking_led
 
 _fast_counting = 0
 
@@ -49,6 +50,7 @@ async def fast_counter_detect (loop, storage_queue, sampling_rate):
         _prev = _value
 
 async def direct_counter_detect (loop, storage_queue, sampling_rate):
+    global blinking_led
     logger = logging.getLogger(__name__)
     queue = storage_queue
     pin = DIRECT_COUNTER
@@ -61,6 +63,7 @@ async def direct_counter_detect (loop, storage_queue, sampling_rate):
         await asyncio.sleep(sampling_rate)
         _value = counter_value(pin)
         if _prev == 0 and _value == 1:
+            turn_blinking_led()
             q = dict()
             q['Eventcode'] = 3106
             q['SequentialNumber'] = _seq_num
