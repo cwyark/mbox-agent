@@ -19,9 +19,6 @@ async def fast_counter_detect (loop, storage_queue, sampling_rate):
             _counting += 1
         _prev = _value
 
-        
-        
-
 async def direct_counter_detect (loop, storage_queue, sampling_rate):
     logger = logging.getLogger(__name__)
     queue = storage_queue
