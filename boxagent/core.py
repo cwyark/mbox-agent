@@ -52,7 +52,7 @@ class PacketCosumer:
         self.logger = logging.getLogger(__name__)
     
     async def run(self):
-        _seq_counter = 0
+        _seq_num = 0
         while True:
             frame = await self.rx_queue.get()
             try:

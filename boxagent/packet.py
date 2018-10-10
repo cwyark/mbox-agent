@@ -28,7 +28,7 @@ class BasePacket:
         try:
             self.header, self.event_code, self.end =  \
                     Struct("<LBH").unpack(data)
-            self.value = payload.decode("utf-8")
+            self.value = str(int(payload.decode("ascii")))
             if self.event_code == 0x35:
                 self.event_code = 3301
             elif self.event_code == 0x36:
