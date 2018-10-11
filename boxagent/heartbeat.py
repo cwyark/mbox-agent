@@ -12,7 +12,7 @@ async def heartbeat (loop, storage_queue, interval):
         q = dict()
         q['EventCode'] = 3800
         q['SequentialNumber'] = seq_number
-        q['RecordDate'] = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')
+        q['RecordDate'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
 
         await storage_queue.put(q)
         await asyncio.sleep(interval)
