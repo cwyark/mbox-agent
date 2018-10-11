@@ -1,4 +1,4 @@
 include version.txt
 include README.md
 include config.ini
-include configs/boxagent.service
+include configs/datalogger.service

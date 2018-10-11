@@ -6,16 +6,16 @@ def read(relpath: str) -> str:
         return f.read()
 
 setup(
-    name = "BoxAgent",
+    name = "DataLogger",
     version_format = '{tag}+{gitsha}',
-    description = 'BoxAgent is asynchronous pacekt parser and executor',
+    description = 'Data Logger is an asynchronous data collector and recorder.',
     long_description = read('README.md'),
     author = 'ChesterTseng',
-    author_email = 'hello@wylinks.io',
+    author_email = 'hello@cwyark.me',
     license = 'Apache 2.0',
     packages = find_packages(),
-    scripts = ['boxd'],
-    data_files = [('', ['configs/boxagent.service']), 
+    scripts = ['loggerd'],
+    data_files = [('', ['configs/datalogger.service']), 
         ('', ['config.ini'])],
     install_requires = ['uvloop',
         'configobj',

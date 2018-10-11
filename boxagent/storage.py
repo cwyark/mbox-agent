@@ -1,6 +1,7 @@
 import asyncio, json, os, logging
 
 from datetime import datetime
+import netifaces
 
 class StorageRunner:
 
@@ -12,9 +13,14 @@ class StorageRunner:
 
     async def run(self):
         self.file_counter = 0
+        _seq_num = 0
         storage_path_prefix = self.config['database']['storage_path']
         interval = int(self.config['database']['interval'])
         storage_type = self.config['database']['type']
+        try:
+            mac_addr = netifaces.ifaddresses('eth0')[netifaces.AF_LINK][0].get('addr')
+        except:
+            mac_addr = "ff:ff:ff:ff:ff:ff"
         while True:
             now = datetime.now()
             await asyncio.sleep(0.7)
@@ -26,8 +32,10 @@ class StorageRunner:
                 q_list = list()
                 while self.queue.empty() is not True:
                     q = self.queue.get_nowait()
-                    # q['MBoxId'] = "{:x}".format(q['MBoxId'])
+                    q['MACid'] = mac_addr 
+                    q['SequentialNumber'] = _seq_num
                     self.logger.info(q)
+                    _seq_num += 1
                     q_list.append(q)
                 if len(q_list) != 0:
                     self.file_counter += 1
