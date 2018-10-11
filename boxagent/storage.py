@@ -13,6 +13,7 @@ class StorageRunner:
 
     async def run(self):
         self.file_counter = 0
+        _seq_num = 0
         storage_path_prefix = self.config['database']['storage_path']
         interval = int(self.config['database']['interval'])
         storage_type = self.config['database']['type']
@@ -32,7 +33,9 @@ class StorageRunner:
                 while self.queue.empty() is not True:
                     q = self.queue.get_nowait()
                     q['MACid'] = mac_addr 
+                    q['SequentialNumber'] = _seq_num
                     self.logger.info(q)
+                    _seq_num += 1
                     q_list.append(q)
                 if len(q_list) != 0:
                     self.file_counter += 1

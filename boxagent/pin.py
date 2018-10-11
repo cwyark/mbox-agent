@@ -5,37 +5,33 @@ GPIO.setwarnings(False)
 
 INTERNET_LED = 19
 POWER_LED = 26
-FAST_COUNTER_LED = 11
-# FAST_COUNTER_LED = 5
+FAST_COUNTER_LED = 5
 DIRECT_COUNTER_LED = 6
 
 FAST_COUNTER = 23
 DIRECT_COUNTER = 24
 
+LED1 = 16
+LED2 = 12
+LED3 = 7
+LED4 = 8
+LED5 = 25
+LED6 = 18
 
-LED1 = 18
-LED2 = 25
-LED3 = 8
-LED4 = 20
-# LED4 = 7
-LED5 = 12
-LED6 = 16
-
-BUTTON1 = 2
-BUTTON2 = 13
-# BUTTON2 = 3
-BUTTON3 = 4
-BUTTON4 = 17
-BUTTON5 = 27
-BUTTON6 = 22
+BUTTON1 = 22
+BUTTON2 = 27
+BUTTON3 = 17
+BUTTON4 = 4
+BUTTON5 = 3
+BUTTON6 = 2
 
 def led_on(pin):
     GPIO.setup(pin, GPIO.OUT)
-    GPIO.output(pin, GPIO.LOW)
+    GPIO.output(pin, GPIO.HIGH)
 
 def led_off(pin):
     GPIO.setup(pin, GPIO.OUT)
-    GPIO.output(pin, GPIO.HIGH)
+    GPIO.output(pin, GPIO.LOW)
 
 def led_value(pin, value):
     if value == 1:
