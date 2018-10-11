@@ -14,6 +14,7 @@ async def counter_led_blink (led):
 async def fast_counter_report (storage_queue):
     logger = logging.getLogger(__name__)
     global _fast_counting
+    led = FAST_COUNTER_LED
     _seq_num = 0
     while True:
         now = datetime.utcnow()
@@ -26,6 +27,7 @@ async def fast_counter_report (storage_queue):
             q['SequentialNumber'] = _seq_num
             q['Value'] = _fast_counting
             await storage_queue.put(q)
+            loop.create_task(counter_led_blink(led))
             _fast_counting = 0
             _seq_num += 1
             await asyncio.sleep(1)
@@ -35,7 +37,6 @@ async def fast_counter_detect (loop, storage_queue, sampling_rate):
     logger = logging.getLogger(__name__)
     queue = storage_queue
     pin = FAST_COUNTER
-    led = FAST_COUNTER_LED
     _prev = counter_value(pin)
     _value = 0
     global _fast_counting
