@@ -2,3 +2,4 @@ include version.txt
 include README.md
 include config.ini
 include configs/datalogger.service
+include configs/datalogger.rsyslog.conf
