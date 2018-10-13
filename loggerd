@@ -9,14 +9,14 @@ import click
 import signal
 import serial
 from configobj import ConfigObj
-from boxagent.core import IngressTunnel, PacketCosumer
-from boxagent.internet import device_connection_checker, ping_connection_checker
-from boxagent.serial_transport import SerialTransport
-from boxagent.storage import StorageRunner
-from boxagent.pin import *
-from boxagent.heartbeat import heartbeat
-from boxagent.button import button_detect
-from boxagent.counter import fast_counter_detect, direct_counter_detect
+from datalogger.core import IngressTunnel, PacketCosumer
+from datalogger.internet import device_connection_checker, ping_connection_checker
+from datalogger.serial_transport import SerialTransport
+from datalogger.storage import StorageRunner
+from datalogger.pin import *
+from datalogger.heartbeat import heartbeat
+from datalogger.button import button_detect
+from datalogger.counter import fast_counter_detect, direct_counter_detect
 
 asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 
@@ -45,7 +45,7 @@ def server(file):
         logger.info("<{} is already running, exit>".format(pidfile))
         sys.exit()
 
-    logger.info("<BoxAgent start>")
+    logger.info("<DataLogger start>")
     open(pidfile, "w").write(str(os.getpid()))   
     signal.signal(signal.SIGTERM, signal_handler)
     try:
@@ -95,7 +95,7 @@ def server(file):
     except Exception as e:
         logger.info("<Loop exception: {}>".format(str(e)))
     finally:
-        logger.info("<BoxAgent end>")
+        logger.info("<DataLogger end>")
         loop.close()
         os.unlink(pidfile)
 
