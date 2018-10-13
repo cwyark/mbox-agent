@@ -17,6 +17,7 @@ from datalogger.pin import *
 from datalogger.heartbeat import heartbeat
 from datalogger.button import button_detect
 from datalogger.counter import fast_counter_detect, direct_counter_detect
+from datalogger.temperature import get_temperature
 
 asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 
@@ -77,6 +78,8 @@ def server(file):
         loop.create_task(button_detect(loop, storage_queue))
         loop.create_task(PacketCosumer(loop, frame_queues, storage_queue, config).run())
         loop.create_task(StorageRunner(loop, storage_queue, config).run())
+
+        loop.create_task(get_temperature(loop, storage_queue))
 
         watch_nic_list = config['internet'].get('watch')
 

@@ -8,3 +8,5 @@ from . import pin
 from . import heartbeat
 from . import button
 from . import counter
+from . import driver
+from . import temperature
