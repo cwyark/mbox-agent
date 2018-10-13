@@ -11,6 +11,7 @@ class CustomInstallCommand(install):
 
     def run(self):
         install.run(self)
+        os.mkdir("/etc/datalogger")
 
 setup(
     name = "DataLogger",
@@ -22,8 +23,10 @@ setup(
     license = 'Apache 2.0',
     packages = find_packages(),
     scripts = ['loggerd'],
-    data_files = [('', ['configs/datalogger.service']), 
-        ('', ['config.ini'])],
+    data_files = [
+        ('/etc/systemd/system', ['configs/datalogger.service']), 
+        ('', ['config.ini'])
+    ],
     install_requires = ['uvloop',
         'configobj',
         'pyserial',

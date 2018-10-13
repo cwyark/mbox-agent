@@ -43,7 +43,6 @@ def button_value(pin):
     GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
     return GPIO.input(pin)
     
-
 def counter_value(pin):
     GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
     return GPIO.input(pin)
