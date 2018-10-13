@@ -22,7 +22,7 @@ class StorageRunner:
         except:
             mac_addr = "ff:ff:ff:ff:ff:ff"
         while True:
-            now = datetime.now()
+            now = datetime.utcnow()
             await asyncio.sleep(0.7)
             if now.second % interval == 0:
                 file_name = "Mbox {}-{}.txt".format( \

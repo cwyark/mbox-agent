@@ -50,7 +50,7 @@ async def button_detect (loop, storage_queue):
                 q = dict()
                 q['EventCode'] = 3100 + _index
                 q['SequentialNumber'] = seq_number
-                q['RecordDate'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
+                q['RecordDate'] = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')
                 q['Value'] = button_perment_value[_index]
                 await storage_queue.put(q)
                 seq_number += 1

@@ -11,7 +11,7 @@ async def fast_counter_report (loop, storage_queue):
     global _fast_counting
 
     while True:
-        now = datetime.now()
+        now = datetime.utcnow()
         await asyncio.sleep(0.05)
         if now.second == 0:
             logger.info("FAST counter collection: {}".format(_fast_counting))
@@ -59,7 +59,7 @@ async def direct_counter_detect (loop, storage_queue, sampling_rate):
             turn_blinking_led()
             q = dict()
             q['Eventcode'] = 3106
-            q['RecordDate'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
+            q['RecordDate'] = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')
             await queue.put(q)
             logger.info("Direct counter triggered")
         _prev = _value

@@ -59,7 +59,7 @@ class PacketCosumer:
                 self.logger.info("<got packet> <{!s}>".format(packet))
                 q = dict()
                 q['EventCode'] = packet.event_code
-                q['RecordDate'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                q['RecordDate'] = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
                 q['Value'] = packet.value
                 await self.storage_queue.put(q)
             except Exception as e:
