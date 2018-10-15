@@ -19,3 +19,5 @@ steps:
     docker login -u $(username) -p $(pswd) $(dockerId)
     docker build -t $(dockerId)/$(imageName) -t $(dockerId)/$(imageNameLast) .
     docker push $(dockerId)/$(imageName)
+    docker push $(dockerId)/$(imageNameLast)
+    
