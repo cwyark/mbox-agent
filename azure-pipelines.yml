@@ -20,4 +20,5 @@ steps:
     docker build -t $(dockerId)/$(imageName) -t $(dockerId)/$(imageNameLast) .
     docker push $(dockerId)/$(imageName)
     docker push $(dockerId)/$(imageNameLast)
+  displayName: 'docker build'
     
