@@ -8,12 +8,12 @@ pool:
 
 variables:
   imageName: 'mbox-agent:$(build.buildId)'
-  dockerid: 'mboxcontainers.azurecr.io'
+  dockerId: 'mboxcontainers.azurecr.io'
   pswd: 'eJuZUdKY53eqUBBKegB0pC8Hl8U+w0IL'
 
 steps:
 - script: |
     docker run --rm --privileged multiarch/qemu-user-static:register --reset
-    docker build $(dockerid)/$(imageName) .
-    docker login -u $(dockerId) -p $(pswd) $(dockerid)
-    docker push $(dockerId).azurecr.io/$(imageName)
+    docker build $(dockerId)/$(imageName) .
+    docker login -u $(dockerId) -p $(pswd) $(dockerId)
+    docker push $(dockerId)/$(imageName)
