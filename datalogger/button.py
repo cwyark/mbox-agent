@@ -4,28 +4,24 @@ from datetime import datetime
 import asyncio
 
 blinking_led = None
+led_pin_list = [LED1, LED2, LED3, LED4, LED5, LED6]
+led_perment_value = [0,0,0,0,0,0]
 
 def turn_blinking_led():
     global blinking_led
     blinking_led = None
 
-async def button_detect (loop, storage_queue):
+async def led_blink_routing ():
     global blinking_led
-    seq_number = 0
-    logger = logging.getLogger(__name__)
+    global led_pin_list
+    global led_perment_value
     led_cache = [0,0,0,0,0,0]
-    led_perment_value = [0,0,0,0,0,0]
-    led_pin_list = [LED1, LED2, LED3, LED4, LED5, LED6]
-    button_cache = [0,0,0,0,0,0]
-    button_perment_value = [0,0,0,0,0,0]
-    button_pin_list = [BUTTON1, BUTTON2, BUTTON3, BUTTON4, BUTTON5, BUTTON6]
-    blinking_led = None
-    for led in led_pin_list:
 # Turn off all LED first
+    for led in led_pin_list:
         value = led_cache[led_pin_list.index(led)]
         led_value(led, value)
     while True:
-        await asyncio.sleep(0.05)
+        await asyncio.sleep(0.5)
         for led in led_pin_list:
             _index = led_pin_list.index(led)
             if blinking_led == led:
@@ -36,6 +32,19 @@ async def button_detect (loop, storage_queue):
                 led_perment_value[_index] = 0
             led_value(led, led_cache[_index])
 
+async def button_detect (loop, storage_queue):
+    global blinking_led
+    global led_pin_list
+    global led_perment_value
+    seq_number = 0
+    logger = logging.getLogger(__name__)
+    button_cache = [0,0,0,0,0,0]
+    button_perment_value = [0,0,0,0,0,0]
+    button_pin_list = [BUTTON1, BUTTON2, BUTTON3, BUTTON4, BUTTON5, BUTTON6]
+    blinking_led = None
+    loop.create_task(led_blink_routing())
+    while True:
+        await asyncio.sleep(0.05)
         for button in button_pin_list:
             _index = button_pin_list.index(button)
             _value = button_value(button)
@@ -54,5 +63,3 @@ async def button_detect (loop, storage_queue):
                 q['Value'] = button_perment_value[_index]
                 await storage_queue.put(q)
                 seq_number += 1
-            # logger.info("button {}".format(button_perment_value))
-            # logger.info("led    {}".format(led_perment_value))

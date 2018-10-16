@@ -28,6 +28,8 @@ def cli():
 @cli.command()
 @click.option('--file', default='config.ini', help='config file path')
 def server(file):
+
+    led_on(POWER_LED)
     
     # Set up logger's config file
     fileConfig(file, disable_existing_loggers=False)
