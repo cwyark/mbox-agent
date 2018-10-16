@@ -37,7 +37,7 @@ async def fast_counter_detect (loop, storage_queue, sampling_rate):
     while True:
         await asyncio.sleep(sampling_rate)
         _value = counter_value(pin)
-        led_value(led, _value)
+        led_value(led, _value^1)
         if _prev == 0 and _value == 1:
             _fast_counting += 1
         _prev = _value
@@ -54,7 +54,7 @@ async def direct_counter_detect (loop, storage_queue, sampling_rate):
     while True:
         await asyncio.sleep(sampling_rate)
         _value = counter_value(pin)
-        led_value(led, _value)
+        led_value(led, _value^1)
         if _prev == 0 and _value == 1:
             turn_blinking_led()
             q = dict()
