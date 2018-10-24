@@ -18,6 +18,7 @@ from datalogger.heartbeat import heartbeat
 from datalogger.button import button_detect
 from datalogger.counter import fast_counter_detect, direct_counter_detect
 from datalogger.temperature import TemperatureRunner
+from datalogger.rc522 import RC522Runner
 
 asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 
@@ -102,6 +103,9 @@ def server(file):
 
         if config.get('temperature') is not None:
             loop.create_task(TemperatureRunner(loop, storage_queue))
+
+        if config.get('rc522') is not None:
+            loop.create_task(RC522Runner(loop, stroage_queue))
 
         loop.run_forever()
     except Exception as e:
