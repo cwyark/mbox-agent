@@ -25,6 +25,11 @@ BUTTON4 = 4
 BUTTON5 = 3
 BUTTON6 = 2
 
+SPI_CS = 7
+SPI_MISO = 9 
+SPI_MOSI = 10
+SPI_CLK = 11
+
 def led_on(pin):
     GPIO.setup(pin, GPIO.OUT)
     GPIO.output(pin, GPIO.HIGH)

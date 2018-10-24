@@ -4,15 +4,15 @@ import asyncio
 import logging
 from datetime import datetime
 
-async def get_temperature (loop, storage_queue):
+async def TemperatureRunner (loop, storage_queue):
     logger = logging.getLogger(__name__)
     _temp = 0
     _prev_temp = 0
     _max31865 = None
-    # _max31865 = max31865.max31865(csPin,misoPin,mosiPin,clkPin)
+    _max31865 = max31865.max31865(csPin,misoPin,mosiPin,clkPin)
     while True:
         await asyncio.sleep(10)
-        #_temp = _max31865.readTemp()
+        _temp = _max31865.readTemp()
         if _temp != _prev_temp:
             q = dict()
             q['EventCode'] = 350
