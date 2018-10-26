@@ -15,6 +15,8 @@ class StorageRunner:
         self.file_counter = 0
         _seq_num = 0
         storage_path_prefix = self.config['database']['storage_path']
+        if os.path.isdir(storage_path_prefix) is False:
+            os.mkdir(storage_path_prefix)
         interval = int(self.config['database']['interval'])
         storage_type = self.config['database']['type']
         try:
