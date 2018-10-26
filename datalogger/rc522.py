@@ -6,7 +6,7 @@ from datetime import datetime
 
 async def RC522Runner (loop, storage_queue):
     logger = logging.getLogger(__name__)
-    reader = MFRC522.MFRC522())
+    reader = MFRC522.MFRC522()
     while True:
         (status, tag_type) = reader.MRFC522_REquest(reader.PICC_REQIDL)
         (status, uid) = reader.MRFC522_Anticoll()

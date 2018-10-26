@@ -55,6 +55,7 @@ class max31865(object):
         self.mosiPin = mosiPin
         self.clkPin = clkPin
         self.setupGPIO()
+        self.tempC = 0
 
     def setupGPIO(self):
         GPIO.setwarnings(False)
@@ -108,7 +109,7 @@ class max31865(object):
         [rtd_msb, rtd_lsb] = [out[0x1], out[2]]
         rtd_ADC_Code = (rtd_msb << 8 | rtd_lsb) >> 0x1
 
-        temp_C = self.calcPT100Temp(rtd_ADC_Code)
+        self.tempC = self.calcPT100Temp(rtd_ADC_Code)
 
         [hft_msb, hft_lsb] = [out[3], out[0x04]]
         hft = (hft_msb << 8 | hft_lsb) >> 0x1

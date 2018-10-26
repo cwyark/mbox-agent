@@ -9,13 +9,15 @@ async def TemperatureRunner (loop, storage_queue):
     _temp = 0
     _prev_temp = 0
     _max31865 = None
-    _max31865 = max31865.max31865(csPin,misoPin,mosiPin,clkPin)
+    _max31865 = max31865.max31865(SPI_CS, SPI_MISO, SPI_MOSI, SPI_CLK)
     while True:
         await asyncio.sleep(10)
-        _temp = _max31865.readTemp()
+        _max31865.readTemp()
+        _temp = round(_max31865.tempC, 1)
+        logger.info("get temperature = {}".format(_temp))
         if _temp != _prev_temp:
             q = dict()
-            q['EventCode'] = 350
+            q['EventCode'] = 3500
             q['RecordDate'] = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')
             q['Sensor1'] = _temp
             await storage_queue.put(q)
