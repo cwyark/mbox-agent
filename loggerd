@@ -93,7 +93,7 @@ def server(file):
             loop.create_task(TemperatureRunner(loop, storage_queue))
 
         if config.get('rc522') is not None:
-            loop.create_task(RC522Runner(loop, stroage_queue))
+            loop.create_task(RC522Runner(loop, storage_queue))
 
         if config.get('internet') is not None:
             internet_timeout = int(config['internet'].get('timeout'))
