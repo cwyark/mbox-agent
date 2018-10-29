@@ -30,6 +30,8 @@ SPI_MISO = 9
 SPI_MOSI = 10
 SPI_CLK = 11
 
+RC522_DETECT_LED = 13
+
 def led_on(pin):
     GPIO.setup(pin, GPIO.OUT)
     GPIO.output(pin, GPIO.HIGH)
