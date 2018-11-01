@@ -19,12 +19,13 @@ class StorageRunner:
             os.mkdir(storage_path_prefix)
         interval = int(self.config['database']['interval'])
         storage_type = self.config['database']['type']
+        target_nic = self.config['internet']['macid']
         try:
-            mac_addr = netifaces.ifaddresses('eth0')[netifaces.AF_LINK][0].get('addr')
+            mac_addr = netifaces.ifaddresses(target_nic)[netifaces.AF_LINK][0].get('addr')
         except:
             mac_addr = "ff:ff:ff:ff:ff:ff"
         while True:
-            now = datetime.utcnow()
+            now = datetime.now()
             await asyncio.sleep(0.7)
             if now.second % interval == 0:
                 file_name = "Mbox {}-{}.txt".format( \

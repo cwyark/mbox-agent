@@ -18,7 +18,7 @@ async def TemperatureRunner (loop, storage_queue):
         if _temp != _prev_temp:
             q = dict()
             q['EventCode'] = 3500
-            q['RecordDate'] = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')
+            q['RecordDate'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
             q['Sensor1'] = round(_temp * 10)
             await storage_queue.put(q)
         _prev_temp = _temp
