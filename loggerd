@@ -77,10 +77,10 @@ def server(file):
         if config.get('counter') is not None:
             fast_freq = config['counter'].get('fast_freq') 
             if fast_freq is not None:
-                loop.create_task(fast_counter_detect(loop, storage_queue, int(fast_freq)))
+                loop.create_task(fast_counter_detect(loop, storage_queue, float(fast_freq)))
             direct_freq = config['counter'].get('direct_freq')
             if direct_freq is not None:
-                loop.create_task(direct_counter_detect(loop, storage_queue, int(direct_freq)))
+                loop.create_task(direct_counter_detect(loop, storage_queue, float(direct_freq)))
 
         if config.get('button') is not None:
             loop.create_task(button_detect(loop, storage_queue))
