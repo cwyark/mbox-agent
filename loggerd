@@ -75,10 +75,10 @@ def server(file):
             loop.create_task(heartbeat(loop, storage_queue, heartbeat_timeout))
         
         if config.get('counter') is not None:
-            fast_freq = config['config'].get('fast_freq') 
+            fast_freq = config['counter'].get('fast_freq') 
             if fast_freq is not None:
                 loop.create_task(fast_counter_detect(loop, storage_queue, int(fast_freq)))
-            direct_freq = config['config'].get('direct_freq')
+            direct_freq = config['counter'].get('direct_freq')
             if direct_freq is not None:
                 loop.create_task(direct_counter_detect(loop, storage_queue, int(direct_freq)))
 
