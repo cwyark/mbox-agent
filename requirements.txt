@@ -1,0 +1,10 @@
+pytest
+pytest-asyncio
+pytest-runner
+pytest-cov
+pytest-mock
+uvloop
+configobj
+pyserial
+netifaces
+click

@@ -9,14 +9,16 @@ import click
 import signal
 import serial
 from configobj import ConfigObj
-from boxagent.core import IngressTunnel, PacketCosumer
-from boxagent.internet import device_connection_checker, ping_connection_checker
-from boxagent.serial_transport import SerialTransport
-from boxagent.storage import StorageRunner
-from boxagent.pin import *
-from boxagent.heartbeat import heartbeat
-from boxagent.button import button_detect
-from boxagent.counter import fast_counter_detect, direct_counter_detect
+from datalogger.core import IngressTunnel, PacketCosumer
+from datalogger.internet import device_connection_checker, ping_connection_checker
+from datalogger.serial_transport import SerialTransport
+from datalogger.storage import StorageRunner
+from datalogger.pin import *
+from datalogger.heartbeat import heartbeat
+from datalogger.button import button_detect
+from datalogger.counter import fast_counter_detect, direct_counter_detect
+from datalogger.temperature import TemperatureRunner
+from datalogger.rc522 import RC522Runner
 
 asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 
@@ -27,9 +29,9 @@ def cli():
 @cli.command()
 @click.option('--file', default='config.ini', help='config file path')
 def server(file):
-    
-    led_on(POWER_LED)
 
+    led_on(POWER_LED)
+    
     # Set up logger's config file
     fileConfig(file, disable_existing_loggers=False)
     # For normal config
@@ -45,7 +47,7 @@ def server(file):
         logger.info("<{} is already running, exit>".format(pidfile))
         sys.exit()
 
-    logger.info("<BoxAgent start>")
+    logger.info("<DataLogger start>")
     open(pidfile, "w").write(str(os.getpid()))   
     signal.signal(signal.SIGTERM, signal_handler)
     try:
@@ -59,43 +61,60 @@ def server(file):
             transport = SerialTransport(loop, protocol, serial_port)
             return (transport, protocol)
 
-        for key, item in config['input'].items():
-            if item.get('type') == 'serial':
-                ser = serial.Serial(item.get('name'), baudrate=item.get('baudrate'), \
-                        timeout=float(item.get('rx_timeout')))
-                coro = create_serial_connection(loop, IngressTunnel, ser)
-                serial_coros.append(coro)
-        loop.run_until_complete(asyncio.gather(*serial_coros))
+        if config.get('input') is not None:
+            for key, item in config['input'].items():
+                if item.get('type') == 'serial':
+                    ser = serial.Serial(item.get('name'), baudrate=item.get('baudrate'), \
+                            timeout=float(item.get('rx_timeout')))
+                    coro = create_serial_connection(loop, IngressTunnel, ser)
+                    serial_coros.append(coro)
+            loop.run_until_complete(asyncio.gather(*serial_coros))
 
-        internet_timeout = int(config['internet'].get('timeout'))
-        loop.create_task(ping_connection_checker(loop, storage_queue, internet_timeout))
+        if config.get('heartbeat') is not None:
+            heartbeat_timeout = int(config['heartbeat'].get('timeout'))
+            loop.create_task(heartbeat(loop, storage_queue, heartbeat_timeout))
+        
+        if config.get('counter') is not None:
+            fast_freq = config['counter'].get('fast_freq') 
+            if fast_freq is not None:
+                loop.create_task(fast_counter_detect(loop, storage_queue, float(fast_freq)))
+            direct_freq = config['counter'].get('direct_freq')
+            if direct_freq is not None:
+                loop.create_task(direct_counter_detect(loop, storage_queue, float(direct_freq)))
 
-        heartbeat_interval = int(config['default'].get('heartbeat'))
-        loop.create_task(heartbeat(loop, storage_queue, heartbeat_interval))
+        if config.get('button') is not None:
+            loop.create_task(button_detect(loop, storage_queue))
 
-        loop.create_task(fast_counter_detect(loop, storage_queue, 0.005))
-        loop.create_task(direct_counter_detect(loop, storage_queue, 0.01))
-
-        loop.create_task(button_detect(loop, storage_queue))
         loop.create_task(PacketCosumer(loop, frame_queues, storage_queue, config).run())
+
         loop.create_task(StorageRunner(loop, storage_queue, config).run())
 
-        watch_nic_list = config['internet'].get('watch')
+        if config.get('temperature') is not None:
+            loop.create_task(TemperatureRunner(loop, storage_queue))
 
-        if type(watch_nic_list) is str:
-            watch_nic_list = [watch_nic_list]
-        elif watch_nic_list is None:
-            watch_nic_list = []
-        else:
-            pass
-        tasks = [device_connection_checker(storage_queue, nic) for nic in watch_nic_list]
-        loop.run_until_complete(asyncio.gather(*tasks))
+        if config.get('rc522') is not None:
+            loop.create_task(RC522Runner(loop, storage_queue))
+
+        if config.get('internet') is not None:
+            internet_timeout = int(config['internet'].get('timeout'))
+            loop.create_task(ping_connection_checker(loop, storage_queue, internet_timeout))
+
+            watch_nic_list = config['internet'].get('watch')
+
+            if type(watch_nic_list) is str:
+                watch_nic_list = [watch_nic_list]
+            elif watch_nic_list is None:
+                watch_nic_list = []
+            else:
+                pass
+            tasks = [device_connection_checker(storage_queue, nic) for nic in watch_nic_list]
+            loop.run_until_complete(asyncio.gather(*tasks))
 
         loop.run_forever()
     except Exception as e:
         logger.info("<Loop exception: {}>".format(str(e)))
     finally:
-        logger.info("<BoxAgent end>")
+        logger.info("<DataLogger end>")
         loop.close()
         os.unlink(pidfile)
 

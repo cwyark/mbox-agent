@@ -1,5 +1,0 @@
-uvloop
-configobj
-pyserial
-netifaces
-click
