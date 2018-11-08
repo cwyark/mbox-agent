@@ -17,8 +17,7 @@ class CustomInstallCommand(install_scripts):
         install_scripts.run(self)
         if not os.path.exists(CONFIG_PATH):
             os.mkdir(CONFIG_PATH)
-        if not os.path.exists(os.path.join(CONFIG_PATH, 'config.ini')):
-            shutil.copy2("config.ini", CONFIG_PATH)
+        shutil.copy2("config.ini", CONFIG_PATH)
         shutil.copy2("configs/datalogger.service", SYSTEMD_PATH)
         if os.path.exists(RSYSLOG_PATH):
             shutil.copy2("configs/datalogger.rsyslog.conf", RSYSLOG_PATH)
