@@ -1,9 +1,9 @@
 Metadata-Version: 1.1
 Name: DataLogger
-Version: 1.1
+Version: 2.4
 Summary: Data Logger is an asynchronous data collector and recorder.
 Home-page: UNKNOWN
-Author: ChesterTseng
+Author: YuSheng T.
 Author-email: hello@cwyark.me
 License: Apache 2.0
 Description: # DataLogger 
