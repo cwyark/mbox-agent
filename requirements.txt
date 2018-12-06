@@ -8,3 +8,4 @@ configobj
 pyserial
 netifaces
 click
+setuptools-git-version
