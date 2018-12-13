@@ -1,5 +1,5 @@
 FROM resin/rpi-raspbian:stretch as runtime 
-
+ENV CC=gcc
 RUN apt-get update && apt-get install -y python3 python3-pip iputils-ping git gcc &&\
   update-alternatives --install /usr/bin/python python /usr/bin/python3 1 &&\
   update-alternatives --install /usr/bin/pip pip /usr/bin/pip3 1
