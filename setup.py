@@ -1,7 +1,9 @@
-from setuptools import setup, find_packages
+from setuptools import setup, find_packages, Extension
 from setuptools.command.install_scripts import install_scripts
 import os
 import shutil
+
+spi_module = Extension('spi', sources = ['spi.c'])
 
 def read(relpath: str) -> str:
     with open(os.path.join(os.path.dirname(__file__), relpath)) as f:
@@ -53,5 +55,7 @@ setup(
         'install_scripts': CustomInstallCommand
     },
     setup_requires = ['pytest-runner', 'setuptools-git-version'],
-    tests_require = ['pytest']
+    tests_require = ['pytest'],
+    platforms=['Linux'],
+    ext_modules = [spi_module]
 )
