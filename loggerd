@@ -9,16 +9,16 @@ import click
 import signal
 import serial
 from configobj import ConfigObj
-from datalogger.core import IngressTunnel, PacketCosumer
-from datalogger.internet import device_connection_checker, ping_connection_checker
-from datalogger.serial_transport import SerialTransport
-from datalogger.storage import StorageRunner
-from datalogger.pin import *
-from datalogger.heartbeat import heartbeat
-from datalogger.button import button_detect
-from datalogger.counter import fast_counter_detect, direct_counter_detect
-from datalogger.temperature import TemperatureRunner
-from datalogger.rc522 import RC522Runner
+from mboxagent.core import IngressTunnel, PacketCosumer
+from mboxagent.internet import device_connection_checker, ping_connection_checker
+from mboxagent.serial_transport import SerialTransport
+from mboxagent.storage import StorageRunner
+from mboxagent.pin import *
+from mboxagent.heartbeat import heartbeat
+from mboxagent.button import button_detect
+from mboxagent.counter import fast_counter_detect, direct_counter_detect
+from mboxagent.temperature import TemperatureRunner
+from mboxagent.rc522 import RC522Runner
 
 asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 
@@ -47,7 +47,7 @@ def server(file):
         logger.info("<{} is already running, exit>".format(pidfile))
         sys.exit()
 
-    logger.info("<DataLogger start>")
+    logger.info("<mbox-agent start>")
     open(pidfile, "w").write(str(os.getpid()))   
     signal.signal(signal.SIGTERM, signal_handler)
     try:
@@ -114,7 +114,7 @@ def server(file):
     except Exception as e:
         logger.info("<Loop exception: {}>".format(str(e)))
     finally:
-        logger.info("<DataLogger end>")
+        logger.info("<mbox-agent end>")
         loop.close()
         os.unlink(pidfile)
 

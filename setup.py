@@ -14,20 +14,20 @@ class CustomInstallCommand(install_scripts):
 
     def run(self):
         RSYSLOG_PATH = "/etc/rsyslog.d"
-        CONFIG_PATH = "/etc/datalogger"
+        CONFIG_PATH = "/etc/mbox-agent"
         SYSTEMD_PATH = "/etc/systemd/system"
         install_scripts.run(self)
         if not os.path.exists(CONFIG_PATH):
             os.mkdir(CONFIG_PATH)
         shutil.copy2("config.ini", CONFIG_PATH)
-        shutil.copy2("configs/datalogger.service", SYSTEMD_PATH)
+        shutil.copy2("configs/mbox-agent.service", SYSTEMD_PATH)
         if os.path.exists(RSYSLOG_PATH):
-            shutil.copy2("configs/datalogger.rsyslog.conf", RSYSLOG_PATH)
+            shutil.copy2("configs/mbox-agent.rsyslog.conf", RSYSLOG_PATH)
 
 setup(
-    name = "DataLogger",
+    name = "mbox-agent",
     version_format = '{tag}+{gitsha}',
-    description = 'Data Logger is an asynchronous data collector and recorder.',
+    description = 'mbox-agent is an asynchronous data collector and recorder.',
     long_description = read('README.md'),
     author = 'YuSheng T.',
     author_email = 'hello@cwyark.me',
@@ -36,8 +36,8 @@ setup(
     scripts = ['loggerd'],
     include_package_data = True,
     data_files = [
-        ('/etc/systemd/system', ['configs/datalogger.service']), 
-        ('/etc/datalogger', ['config.ini'])
+        ('/etc/systemd/system', ['configs/mbox-agent.service']), 
+        ('/etc/mbox-agent', ['config.ini'])
     ],
     install_requires = ['uvloop',
         'configobj',

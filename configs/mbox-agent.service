@@ -1,12 +1,12 @@
 [Unit]
-Description=Datalogger is a data logger and recorder.
+Description=mbox-agent is a async  data collector and recorder.
 After=syslog.target
 
 [Service]
 Type=simple
 User=pi
 Group=users
-ExecStart=/usr/local/bin/loggerd server --file /etc/datalogger/config.ini
+ExecStart=/usr/local/bin/loggerd server --file /etc/mbox-agent/config.ini
 StandardOutput=syslog
 StandardError=syslog
 

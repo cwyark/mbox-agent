@@ -1,5 +1,5 @@
 include version.txt
 include README.md
 include config.ini
-include configs/datalogger.service
-include configs/datalogger.rsyslog.conf
+include configs/mbox-agent.service
+include configs/mbox-agent.rsyslog.conf
