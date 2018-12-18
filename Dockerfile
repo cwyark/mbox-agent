@@ -13,5 +13,8 @@ RUN python -m pip install --upgrade pip setuptools &&\
   python -m pip install RPi.GPIO &&\
   python setup.py sdist --format=gztar && python -m pip install dist/*
 
+#ADD config.ini /usr/local/config.ini
+
 VOLUME ["/data"]
+VOLUME ["/usr/local/config.ini"]
 CMD ["/usr/local/bin/loggerd", "server", "--file", "/usr/local/config.ini"]
