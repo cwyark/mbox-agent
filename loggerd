@@ -19,6 +19,7 @@ from mboxagent.button import button_detect
 from mboxagent.counter import fast_counter_detect, direct_counter_detect
 from mboxagent.temperature import TemperatureRunner
 from mboxagent.rc522 import RC522Runner
+import RPi.GPIO as GPIO
 
 asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 
@@ -31,6 +32,13 @@ def cli():
 def server(file):
 
     led_on(POWER_LED)
+    # a work around, in case LED will binking accendtially
+    GPIO.setup(LED1, GPIO.INPUT)
+    GPIO.setup(LED2, GPIO.INPUT)
+    GPIO.setup(LED3, GPIO.INPUT)
+    GPIO.setup(LED4, GPIO.INPUT)
+    GPIO.setup(LED5, GPIO.INPUT)
+    GPIO.setup(LED6, GPIO.INPUT)
     
     # Set up logger's config file
     fileConfig(file, disable_existing_loggers=False)
