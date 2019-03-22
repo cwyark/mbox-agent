@@ -18,7 +18,7 @@ async def RC522Runner (loop, storage_queue):
         if status == reader.MI_OK:
             uid_number = (uid[3] << 24) + (uid[2] << 16) + (uid[1] << 8) + uid[0]
             q = dict()
-            q['EventCode'] = 3600
+            q['EventCode'] = 3201
             q['RecordDate'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
             q['rfid1'] = uid_number
             led_on(RC522_DETECT_LED)
