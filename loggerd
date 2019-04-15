@@ -98,9 +98,9 @@ def server(file):
         loop.create_task(StorageRunner(loop, storage_queue, config).run())
 
         if config.get('multi_temp') is not None:
-            loop.create_task(TemperatureRunner(loop, storage_queue, cs = 23, temp_no = 1))
+            loop.create_task(TemperatureRunner(loop, storage_queue, cs = 23, miso = 20, mosi = 21, clk = 16, temp_no = 1))
             loop.create_task(TemperatureRunner(loop, storage_queue, cs = 24, temp_no = 2))
-            loop.create_task(TemperatureRunner(loop, storage_queue, cs = 25, temp_no = 3))
+            loop.create_task(TemperatureRunner(loop, storage_queue, cs = 25, miso = 27, mosi = 22, clk = 17, temp_no = 3))
 
         if config.get('temperature') is not None:
             loop.create_task(TemperatureRunner(loop, storage_queue))

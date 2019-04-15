@@ -4,12 +4,12 @@ import asyncio
 import logging
 from datetime import datetime
 
-async def TemperatureRunner (loop, storage_queue, cs = SPI_CS, temp_no = 1):
+async def TemperatureRunner (loop, storage_queue, cs = SPI_CS, miso = SPI_MISO, mosi = SPI_MOSI, clk = SPI_CLK, temp_no = 1):
     logger = logging.getLogger(__name__)
     _temp = 0
     _prev_temp = 0
     _max31865 = None
-    _max31865 = max31865.max31865(cs, SPI_MISO, SPI_MOSI, SPI_CLK)
+    _max31865 = max31865.max31865(cs, miso, mosi, clk)
     while True:
         await asyncio.sleep(10)
         _max31865.readTemp()
