@@ -81,13 +81,21 @@ def server(file):
         if config.get('heartbeat') is not None:
             heartbeat_timeout = int(config['heartbeat'].get('timeout'))
             loop.create_task(heartbeat(loop, storage_queue, heartbeat_timeout))
-        
-        if config.get('counter') is not None:
+
+        if config.get('multi-counter') is not None:
             fast_freq = config['counter'].get('fast_freq') 
             if fast_freq is not None:
                 loop.create_task(fast_counter_detect(loop, storage_queue, float(fast_freq)))
                 loop.create_task(fast_counter_detect(loop, storage_queue, float(fast_freq), 
                     eventcode = 3202, pin = 21, led = 13))
+            direct_freq = config['counter'].get('direct_freq')
+            if direct_freq is not None:
+                loop.create_task(direct_counter_detect(loop, storage_queue, float(direct_freq)))
+        
+        if config.get('counter') is not None:
+            fast_freq = config['counter'].get('fast_freq') 
+            if fast_freq is not None:
+                loop.create_task(fast_counter_detect(loop, storage_queue, float(fast_freq)))
             direct_freq = config['counter'].get('direct_freq')
             if direct_freq is not None:
                 loop.create_task(direct_counter_detect(loop, storage_queue, float(direct_freq)))
