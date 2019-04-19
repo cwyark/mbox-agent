@@ -86,6 +86,8 @@ def server(file):
             fast_freq = config['counter'].get('fast_freq') 
             if fast_freq is not None:
                 loop.create_task(fast_counter_detect(loop, storage_queue, float(fast_freq)))
+                loop.create_task(fast_counter_detect(loop, storage_queue, float(fast_freq), 
+                    eventcode = 3202, pin = 21, led = 13))
             direct_freq = config['counter'].get('direct_freq')
             if direct_freq is not None:
                 loop.create_task(direct_counter_detect(loop, storage_queue, float(direct_freq)))
