@@ -14,7 +14,7 @@ async def fast_counter_report (loop, storage_queue, eventcode):
         now = datetime.now()
         await asyncio.sleep(0.05)
         if now.second == 0:
-            logger.info("FAST counter collection: {}".format(_fast_counting[evt_str]))
+            logger.info("FAST counter collection: {}:{}".format(evt_str, _fast_counting[evt_str]))
             q = dict()
             q['EventCode'] = eventcode
             q['RecordDate'] = now.strftime('%Y-%m-%d %H:%M:%S.%f')
