@@ -33,6 +33,18 @@ class BasePacket:
                 self.event_code = 3301
             elif self.event_code == 0x36:
                 self.event_code = 3302
+            elif self.event_code == 0x37:
+                self.event_code = 3303
+            elif self.event_code == 0x38:
+                self.event_code = 3304
+            elif self.event_code == 0x39:
+                self.event_code = 3305
+            elif self.event_code == 0x41:
+                self.event_code = 3306
+            elif self.event_code == 0x42:
+                self.event_code = 3307
+            elif self.event_code == 0x43:
+                self.event_code = 3308
             else:
                 pass
         except:
