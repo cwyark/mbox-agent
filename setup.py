@@ -30,19 +30,20 @@ setup(
     description = 'mbox-agent is an asynchronous data collector and recorder.',
     long_description = read('README.md'),
     author = 'YuSheng T.',
-    author_email = 'hello@cwyark.me',
+    author_email = 'chester@cwyark.me',
     license = 'Apache 2.0',
     packages = find_packages(),
     scripts = ['loggerd'],
     include_package_data = True,
     data_files = [
-        ('/etc/systemd/system', ['configs/mbox-agent.service']), 
+        ('/etc/systemd/system', ['configs/mbox-agent.service']),
         ('/etc/mbox-agent', ['config.ini'])
     ],
     install_requires = ['uvloop',
         'configobj',
         'pyserial',
         'netifaces',
+        'psutil',
         'click'],
     classifiers = [
 		'Development Status :: 4 - Beta',

@@ -19,6 +19,7 @@ from mboxagent.button import button_detect
 from mboxagent.counter import fast_counter_detect, direct_counter_detect
 from mboxagent.temperature import TemperatureRunner
 from mboxagent.rc522 import RC522Runner
+from mboxagent.system import disk_capacity_event, disk_usage_event, cpu_usage_event, mem_usage_event
 import RPi.GPIO as GPIO
 
 asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
@@ -39,7 +40,7 @@ def server(file):
     GPIO.setup(LED4, GPIO.IN)
     GPIO.setup(LED5, GPIO.IN)
     GPIO.setup(LED6, GPIO.IN)
-    
+
     # Set up logger's config file
     fileConfig(file, disable_existing_loggers=False)
     # For normal config
@@ -56,7 +57,7 @@ def server(file):
         sys.exit()
 
     logger.info("<mbox-agent start>")
-    open(pidfile, "w").write(str(os.getpid()))   
+    open(pidfile, "w").write(str(os.getpid()))
     signal.signal(signal.SIGTERM, signal_handler)
     try:
         loop = asyncio.get_event_loop()
@@ -82,18 +83,23 @@ def server(file):
             heartbeat_timeout = int(config['heartbeat'].get('timeout'))
             loop.create_task(heartbeat(loop, storage_queue, heartbeat_timeout))
 
+        loop.create_task(disk_capacity_event(loop, storage_queue, 24 * 60 * 60))
+        loop.create_task(disk_usage_event(loop, storage_queue, 60 * 60))
+        loop.create_task(cpu_usage_event(loop, storage_queue, 5 * 60))
+        loop.create_task(mem_usage_event(loop, storage_queue, 5 * 60))
+
         if config.get('multi-counter') is not None:
-            fast_freq = config['multi-counter'].get('fast_freq') 
+            fast_freq = config['multi-counter'].get('fast_freq')
             if fast_freq is not None:
                 loop.create_task(fast_counter_detect(loop, storage_queue, float(fast_freq)))
-                loop.create_task(fast_counter_detect(loop, storage_queue, float(fast_freq), 
+                loop.create_task(fast_counter_detect(loop, storage_queue, float(fast_freq),
                     eventcode = 3202, pin = 21, led = 13))
             direct_freq = config['multi-counter'].get('direct_freq')
             if direct_freq is not None:
                 loop.create_task(direct_counter_detect(loop, storage_queue, float(direct_freq)))
-        
+
         if config.get('counter') is not None:
-            fast_freq = config['counter'].get('fast_freq') 
+            fast_freq = config['counter'].get('fast_freq')
             if fast_freq is not None:
                 loop.create_task(fast_counter_detect(loop, storage_queue, float(fast_freq)))
             direct_freq = config['counter'].get('direct_freq')
